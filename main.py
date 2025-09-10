@@ -234,7 +234,7 @@ TRANSLATIONS = {
 }
 
 # آیدی ادمین (جایگزین با آیدی عددی تلگرام خودت)
-ADMIN_ID = 123456789  # جایگزین با آیدی واقعی تلگرامت
+ADMIN_ID = 5095867558 # جایگزین با آیدی واقعی تلگرامت
 
 # اتصال دیتابیس
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -550,7 +550,7 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
 
 # تنظیمات اصلی
 def main() -> None:
-    application = Application.builder().token("YOUR_ACTUAL_BOT_TOKEN").build()  # جایگزین با توکن واقعی بات
+    application = Application.builder().token("7593433447:AAFX4agluJXPxjqxySNHG82_b01oroR8XbE").build()  # جایگزین با توکن واقعی بات
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin))
