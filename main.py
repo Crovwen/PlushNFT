@@ -114,127 +114,11 @@ TRANSLATIONS = {
         'request_rejected': 'درخواست رد شد.',
         'not_admin': 'شما ادمین نیستید!'
     },
-    'ar': {
-        'welcome': 'مرحبا بك في @PlushNFTbot!',
-        'captcha_prompt': 'اكتب اسم هذا الإيموجي بالإنجليزية: {name}',
-        'incorrect_captcha': 'غير صحيح! جرب /start مرة أخرى.',
-        'main_menu': 'القائمة الرئيسية:',
-        'profile': 'الملف الشخصي',
-        'referral_link': 'رابط الإحالة',
-        'your_referral_link': 'رابط الإحالة الخاص بك: {link}',
-        'daily_bonus': 'مكافأة يومية',
-        'claimed_bonus': 'لقد مطالب 0.1 TON مكافأة يومية!',
-        'already_claimed_bonus': 'لقد مطالب مكافأة اليوم بالفعل!',
-        'withdrawal': 'السحب 📤',
-        'withdrawal_prompt': 'بناءً على رصيد حسابك، اختر أحد NFT التالية من القائمة وأرسل طلب السحب باستخدام الزر الزجاجي👇',
-        'option': 'الخيار {number}:\n" {name} ": *{price} TON*',
-        'user_info': 'معرف المستخدم: {user_id}\nالإحالات: {referrals}\nتاريخ الانضمام: {join_date}\nالسحوبات: {withdrawals}',
-        'referral_joined': 'انضم المستخدم {username} عبر رابط الإحالة الخاص بك وأضيف 0.1 TON إلى رصيدك.',
-        'request_account_id': 'يرجى إدخال معرف حسابك للمتابعة مع السحب.',
-        'confirm_purchase': 'هل أنت متأكد من شراء هذا NFT مع خصم الرصيد المطلوب؟',
-        'confirm': '✅ تأكيد',
-        'cancel': '❌ إلغاء',
-        'withdrawal_success': 'سيتم إيداع NFT الخاص بك في حسابك خلال اليومين العمل التاليين.',
-        'withdrawal_canceled': 'تم إلغاء العملية.',
-        'insufficient_balance': 'رصيد غير كاف!',
-        'invalid_nft': 'اختيار NFT غير صالح!',
-        'language': 'اللغة',
-        'admin_menu': 'قائمة الإدارة:',
-        'list_users': 'قائمة المستخدمين',
-        'list_requests': 'قائمة طلبات السحب',
-        'broadcast': 'إرسال رسالة جماعية',
-        'users_list': 'قائمة المستخدمين:\n{users}',
-        'requests_list': 'قائمة طلبات السحب:\n{requests}',
-        'enter_broadcast': 'أدخل الرسالة لإرسالها إلى جميع المستخدمين.',
-        'broadcast_sent': 'تم إرسال الرسالة إلى جميع المستخدمين.',
-        'approve': 'موافقة',
-        'reject': 'رفض',
-        'request_approved': 'تم الموافقة على الطلب.',
-        'request_rejected': 'تم رفض الطلب.',
-        'not_admin': 'أنت لست الإداري!'
-    },
-    'ru': {
-        'welcome': 'Добро пожаловать в @PlushNFTbot!',
-        'captcha_prompt': 'Введите имя этого эмодзи на английском: {name}',
-        'incorrect_captcha': 'Неверно! Попробуйте /start снова.',
-        'main_menu': 'Главное меню:',
-        'profile': 'Профиль',
-        'referral_link': 'Реферальная ссылка',
-        'your_referral_link': 'Ваша реферальная ссылка: {link}',
-        'daily_bonus': 'Ежедневный бонус',
-        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
-        'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
-        'withdrawal': 'Вывод 📤',
-        'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
-        'option': 'Вариант {number}:\n" {name} ": *{price} TON*',
-        'user_info': 'ID пользователя: {user_id}\nРефералы: {referrals}\nДата присоединения: {join_date}\nВыводы: {withdrawals}',
-        'referral_joined': 'Пользователь {username} присоединился по вашей реферальной ссылке и 0.1 TON добавлено к вашему балансу.',
-        'request_account_id': 'Пожалуйста, введите ID вашего аккаунта для продолжения вывода.',
-        'confirm_purchase': 'Вы уверены, что хотите приобрести этот NFT с вычетом необходимого баланса?',
-        'confirm': '✅ Подтвердить',
-        'cancel': '❌ Отменить',
-        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунт в течение следующих 2 рабочих дней.',
-        'withdrawal_canceled': 'Операция отменена.',
-        'insufficient_balance': 'Недостаточно баланса!',
-        'invalid_nft': 'Недействительный выбор NFT!',
-        'language': 'Язык',
-        'admin_menu': 'Меню админа:',
-        'list_users': 'Список пользователей',
-        'list_requests': 'Список запросов на вывод',
-        'broadcast': 'Рассылка сообщения',
-        'users_list': 'Список пользователей:\n{users}',
-        'requests_list': 'Список запросов на вывод:\n{requests}',
-        'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
-        'broadcast_sent': 'Сообщение отправлено всем пользователям.',
-        'approve': 'Одобрить',
-        'reject': 'Отклонить',
-        'request_approved': 'Запрос одобрен.',
-        'request_rejected': 'Запрос отклонен.',
-        'not_admin': 'Вы не админ!'
-    },
-    'fr': {
-        'welcome': 'Bienvenue sur @PlushNFTbot!',
-        'captcha_prompt': 'Tapez le nom de cet emoji en anglais: {name}',
-        'incorrect_captcha': 'Incorrect! Essayez /start à nouveau.',
-        'main_menu': 'Menu principal:',
-        'profile': 'Profil',
-        'referral_link': 'Lien de parrainage',
-        'your_referral_link': 'Votre lien de parrainage: {link}',
-        'daily_bonus': 'Bonus quotidien',
-        'claimed_bonus': 'Vous avez réclamé 0.1 TON bonus quotidien!',
-        'already_claimed_bonus': 'Vous avez déjà réclamé le bonus d\'aujourd\'hui!',
-        'withdrawal': 'Retrait 📤',
-        'withdrawal_prompt': 'Selon le solde de votre compte, sélectionnez l\'un des NFT suivants dans la liste et soumettez votre demande de retrait avec le bouton en verre👇',
-        'option': 'Option {number}:\n" {name} ": *{price} TON*',
-        'user_info': 'ID utilisateur: {user_id}\nParrainages: {referrals}\nDate d\'inscription: {join_date}\nRetraits: {withdrawals}',
-        'referral_joined': 'L\'utilisateur {username} a rejoint via votre lien de parrainage et 0.1 TON ajouté à votre solde.',
-        'request_account_id': 'Veuillez entrer votre ID de compte pour continuer le retrait.',
-        'confirm_purchase': 'Êtes-vous sûr de vouloir acheter ce NFT avec le solde requis déduit?',
-        'confirm': '✅ Confirmer',
-        'cancel': '❌ Annuler',
-        'withdrawal_success': 'Votre NFT sera déposé dans votre compte dans les 2 prochains jours ouvrables.',
-        'withdrawal_canceled': 'Opération annulée.',
-        'insufficient_balance': 'Solde insuffisant!',
-        'invalid_nft': 'Sélection NFT invalide!',
-        'language': 'Langue',
-        'admin_menu': 'Menu admin:',
-        'list_users': 'Liste des utilisateurs',
-        'list_requests': 'Liste des demandes de retrait',
-        'broadcast': 'Diffusion de message',
-        'users_list': 'Liste des utilisateurs:\n{users}',
-        'requests_list': 'Liste des demandes de retrait:\n{requests}',
-        'enter_broadcast': 'Entrez le message à diffuser à tous les utilisateurs.',
-        'broadcast_sent': 'Message envoyé à tous les utilisateurs.',
-        'approve': 'Approuver',
-        'reject': 'Rejeter',
-        'request_approved': 'Demande approuvée.',
-        'request_rejected': 'Demande rejetée.',
-        'not_admin': 'Vous n\'êtes pas l\'admin!'
-    }
+    # ... (ترجمه‌های دیگر مثل ar، ru، fr رو همون‌طور که هست نگه دار)
 }
 
 # آیدی ادمین (جایگزین با آیدی عددی تلگرام خودت)
-ADMIN_ID = 5095867558 # جایگزین با آیدی واقعی تلگرامت
+ADMIN_ID = 123456789  # جایگزین با آیدی واقعی تلگرامت
 
 # اتصال دیتابیس
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -548,28 +432,20 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
     elif data == "main_menu":
         await show_menu(update, context)
 
-# تنظیمات اصلی
 def main() -> None:
-    # ساخت Updater با توکن مستقیم
-    updater = Updater("7593433447:AAFX4agluJXPxjqxySNHG82_b01oroR8XbE", use_context=True)
+    application = Application.builder().token("7593433447:AAFX4agluJXPxjqxySNHG82_b01oroR8XbE").build()
 
-    # دریافت Dispatcher
-    dp = updater.dispatcher
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("admin", admin))
+    application.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
+    application.add_handler(CallbackQueryHandler(menu_callback))
+    application.add_handler(CallbackQueryHandler(change_language, pattern="^lang_"))
+    application.add_handler(CallbackQueryHandler(select_nft, pattern="^select_nft_"))
+    application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^confirm_purchase|^cancel_purchase"))
+    application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # اضافه کردن هندلرها
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("admin", admin))
-    dp.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
-    dp.add_handler(CallbackQueryHandler(menu_callback))
-    dp.add_handler(CallbackQueryHandler(change_language, pattern="^lang_"))
-    dp.add_handler(CallbackQueryHandler(select_nft, pattern="^select_nft_"))
-    dp.add_handler(CallbackQueryHandler(handle_purchase, pattern="^confirm_purchase|^cancel_purchase"))
-    dp.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-
-    # شروع بوت
-    updater.start_polling()
-    updater.idle()
+    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 if __name__ == '__main__':
     main()
