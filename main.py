@@ -2,8 +2,10 @@ import logging
 import sqlite3
 import random
 import datetime
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
+import asyncio
 
 # تنظیم لاگینگ
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -162,7 +164,7 @@ TRANSLATIONS = {
         'referral_link': 'Реферальная ссылка',
         'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус',
-        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
+        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонوس!',
         'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
@@ -173,7 +175,7 @@ TRANSLATIONS = {
         'confirm_purchase': 'Вы уверены, что хотите приобрести этот NFT с вычетом необходимого баланса?',
         'confirm': '✅ Подтвердить',
         'cancel': '❌ Отменить',
-        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунت в течение следующих 2 рабочих дней.',
+        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунт в течение следующих 2 рабочих дней.',
         'withdrawal_canceled': 'Операция отменена.',
         'insufficient_balance': 'Недостаточно баланса!',
         'invalid_nft': 'Недействительный выбор NFT!',
@@ -256,7 +258,7 @@ def get_text(user_id, key, **kwargs):
 
 # تابع برای تولید لینک رفرال
 def get_referral_link(user_id):
-    return f"https://t.me/PlushNFTbot?start={user_id}"  # جایگزین your_bot_username
+    return f"https://t.me/PlushNFTBot?start={user_id}"  # جایگزین your_bot_username
 
 # هندلر /start
 async def start(update: Update, context: CallbackContext) -> None:
@@ -373,11 +375,11 @@ async def menu_callback(update: Update, context: CallbackContext) -> None:
 
     elif data == "language":
         keyboard = [
-            [InlineKeyboardButton("English", callback_data="lang_en")],
-            [InlineKeyboardButton("فارسی", callback_data="lang_fa")],
-            [InlineKeyboardButton("عربي", callback_data="lang_ar")],
-            [InlineKeyboardButton("Русский", callback_data="lang_ru")],
-            [InlineKeyboardButton("Français", callback_data="lang_fr")]
+            [InlineKeyboardButton("🇬🇧English", callback_data="lang_en")],
+            [InlineKeyboardButton("🇮🇷فارسی", callback_data="lang_fa")],
+            [InlineKeyboardButton("🇸🇦عربي", callback_data="lang_ar")],
+            [InlineKeyboardButton("🇷🇺Русский", callback_data="lang_ru")],
+            [InlineKeyboardButton("🇨🇵Français", callback_data="lang_fr")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Select language:", reply_markup=reply_markup)
@@ -548,6 +550,22 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
     elif data == "main_menu":
         await show_menu(update, context)
 
+async def run_polling(application):
+    await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+
+async def keep_alive():
+    # یه سرور ساده برای بستن پورت (بدون نیاز به پردازش درخواست)
+    import socket
+    port = int(os.getenv("PORT", 10000))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(('0.0.0.0', port))
+    sock.listen(5)
+    logger.info(f"Listening on port {port} to keep Render happy...")
+    while True:
+        conn, addr = await asyncio.get_event_loop().run_in_executor(None, sock.accept)
+        conn.close()
+
 def main() -> None:
     # ساخت Application با توکن مستقیم
     application = Application.builder().token("7593433447:AAGVgxzFtchP-hE4vfyY0ubkq31ODwADXTI").build()
@@ -563,8 +581,11 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # اجرای بوت بدون وابستگی به Updater
-    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    # اجرای همزمان polling و نگه‌داشتن پورت باز
+    loop = asyncio.get_event_loop()
+    loop.create_task(run_polling(application))
+    loop.create_task(keep_alive())
+    loop.run_forever()
 
 if __name__ == '__main__':
     main()
