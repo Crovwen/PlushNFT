@@ -1,0 +1,457 @@
+import logging
+import sqlite3
+import random
+import datetime
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
+from tonsdk.contract.wallet import WalletVersionEnum, Wallets
+from tonsdk.utils import Address, to_nano
+from tonsdk.provider import ToncenterClient
+from tonsdk.boc import Cell
+from pytonconnect import TonConnect
+import os
+
+# تنظیم لاگینگ
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# ایموجی‌ها و نام‌ها
+EMOJIS = {
+    '🔥': 'Fire',
+    '💧': 'Water',
+    '☁️': 'Cloud',
+    '☀️': 'Sun',
+    '❄️': 'Snow',
+    '🌍': 'Earth',
+    '⛰️': 'Mountain'
+}
+
+# لیست NFTها
+NFT_LIST = [
+    {'name': 'LOL Pop', 'price': 1.6},
+    {'name': 'Holiday Drink', 'price': 1.8},
+    {'name': 'Ginger Cookie', 'price': 1.8},
+    {'name': 'Snoop Dogg', 'price': 2.0},
+    {'name': 'Tama Gadget', 'price': 2.2},
+    {'name': 'Swag Bag', 'price': 2.5},
+    {'name': 'Snow Mittens', 'price': 3.0},
+    {'name': 'Spy Agaric', 'price': 3.2},
+    {'name': 'Pet Snake', 'price': 5.0},
+    {'name': 'Snoop Cigar', 'price': 7.2}
+]
+
+# تنظیمات TON
+API_KEY = os.getenv('TON_API_KEY', 'your_toncenter_api_key')
+CLIENT = ToncenterClient(key=API_KEY, testnet=True)
+MNEMONICS = os.getenv('WALLET_MNEMONICS', 'your wallet mnemonics').split()
+_, _, _, WALLET = Wallets.from_mnemonics(MNEMONICS, WalletVersionEnum.v4r2, 0)
+WALLET_ADDRESS = WALLET.address.to_string(True, True, True)
+
+# دیکشنری ترجمه‌ها
+TRANSLATIONS = {
+    'en': {
+        'welcome': 'Welcome to @PlushNFTbot!',
+        'captcha_prompt': 'Type the name of this emoji in English: {name}',
+        'incorrect_captcha': 'Incorrect! Try /start again.',
+        'main_menu': 'Main Menu:',
+        'profile': 'Profile',
+        'referral_link': 'Referral Link',
+        'your_referral_link': 'Your referral link: {link}',
+        'daily_bonus': 'Daily Bonus',
+        'claimed_bonus': 'You claimed 0.1 TON daily bonus!',
+        'already_claimed_bonus': 'You already claimed today\'s bonus!',
+        'withdrawal': 'Withdrawal 📤',
+        'withdrawal_prompt': 'Depending on your account balance, select one of the following NFTs from the list and submit your withdrawal request using the glass button👇',
+        'option': 'Option {number}:\n" {name} ": *{price} TON*',
+        'user_info': 'User ID: {user_id}\nReferrals: {referrals}\nJoin Date: {join_date}\nWithdrawals: {withdrawals}',
+        'referral_joined': 'User {username} joined via your referral link and 0.1 TON added to your balance.',
+        'request_account_id': 'Please enter your account ID to proceed with the withdrawal.',
+        'confirm_purchase': 'Are you sure you want to purchase this NFT with the required balance deducted?',
+        'confirm': '✅ Confirm',
+        'cancel': '❌ Cancel',
+        'withdrawal_success': 'Your NFT will be deposited into your account within the next 2 business days.',
+        'withdrawal_canceled': 'Operation canceled.',
+        'insufficient_balance': 'Insufficient balance!',
+        'invalid_nft': 'Invalid NFT selection!',
+        'language': 'Language',
+        'collectible': 'Collectible #{number}',
+        'owner': 'Owner: {owner}',
+        'model': 'Model: Lava Viper 5%',
+        'symbol': 'Symbol: Magic Wand 0.6%',
+        'backdrop': 'Backdrop: Persimmon 1.2%',
+        'quantity': 'Quantity: 121,825/279,106 issued',
+        'value': 'Value: ~${value} [learn more]'
+    },
+    'fa': {
+        'welcome': 'خوش آمدید به @PlushNFTbot!',
+        'captcha_prompt': 'نام این ایموجی را به انگلیسی بنویسید: {name}',
+        'incorrect_captcha': 'نادرست! دوباره /start را امتحان کنید.',
+        'main_menu': 'منوی اصلی:',
+        'profile': 'پروفایل',
+        'referral_link': 'لینک رفرال',
+        'your_referral_link': 'لینک رفرال شما: {link}',
+        'daily_bonus': 'پاداش روزانه',
+        'claimed_bonus': 'شما 0.1 TON پاداش روزانه دریافت کردید!',
+        'already_claimed_bonus': 'شما امروز پاداش را دریافت کرده‌اید!',
+        'withdrawal': 'برداشت 📤',
+        'withdrawal_prompt': 'با توجه به موجودی حسابتان، یکی از NFTهای زیر را از لیست انتخاب کنید و درخواست برداشت خود را با دکمه شیشه‌ای ارسال کنید👇',
+        'option': 'گزینه {number}:\n" {name} ": *{price} TON*',
+        'user_info': 'شناسه کاربر: {user_id}\nرفرال‌ها: {referrals}\nتاریخ عضویت: {join_date}\nبرداشت‌ها: {withdrawals}',
+        'referral_joined': 'کاربر {username} از طریق لینک رفرال شما پیوست و 0.1 TON به موجودی شما اضافه شد.',
+        'request_account_id': 'لطفاً شناسه حساب خود را برای ادامه برداشت وارد کنید.',
+        'confirm_purchase': 'آیا از خرید این NFT با کسر موجودی مورد نیاز مطمئن هستید؟',
+        'confirm': '✅ تأیید',
+        'cancel': '❌ لغو',
+        'withdrawal_success': 'NFT شما طی 2 روز کاری آینده به حسابتان واریز خواهد شد.',
+        'withdrawal_canceled': 'عملیات لغو شد.',
+        'insufficient_balance': 'موجودی کافی نیست!',
+        'invalid_nft': 'انتخاب NFT نامعتبر!',
+        'language': 'زبان',
+        'collectible': 'کلکسیبل #{number}',
+        'owner': 'صاحب: {owner}',
+        'model': 'مدل: Lava Viper 5%',
+        'symbol': 'نماد: Magic Wand 0.6%',
+        'backdrop': 'پس‌زمینه: Persimmon 1.2%',
+        'quantity': 'مقدار: 121,825/279,106 صادر شده',
+        'value': 'ارزش: ~${value} [بیشتر بدانید]'
+    },
+    'ar': {
+        'welcome': 'مرحبا بك في @PlushNFTbot!',
+        'captcha_prompt': 'اكتب اسم هذا الإيموجي بالإنجليزية: {name}',
+        'incorrect_captcha': 'غير صحيح! جرب /start مرة أخرى.',
+        'main_menu': 'القائمة الرئيسية:',
+        'profile': 'الملف الشخصي',
+        'referral_link': 'رابط الإحالة',
+        'your_referral_link': 'رابط الإحالة الخاص بك: {link}',
+        'daily_bonus': 'مكافأة يومية',
+        'claimed_bonus': 'لقد مطالب 0.1 TON مكافأة يومية!',
+        'already_claimed_bonus': 'لقد مطالب مكافأة اليوم بالفعل!',
+        'withdrawal': 'السحب 📤',
+        'withdrawal_prompt': 'بناءً على رصيد حسابك، اختر أحد NFT التالية من القائمة وأرسل طلب السحب باستخدام الزر الزجاجي👇',
+        'option': 'الخيار {number}:\n" {name} ": *{price} TON*',
+        'user_info': 'معرف المستخدم: {user_id}\nالإحالات: {referrals}\nتاريخ الانضمام: {join_date}\nالسحوبات: {withdrawals}',
+        'referral_joined': 'انضم المستخدم {username} عبر رابط الإحالة الخاص بك وأضيف 0.1 TON إلى رصيدك.',
+        'request_account_id': 'يرجى إدخال معرف حسابك للمتابعة مع السحب.',
+        'confirm_purchase': 'هل أنت متأكد من شراء هذا NFT مع خصم الرصيد المطلوب؟',
+        'confirm': '✅ تأكيد',
+        'cancel': '❌ إلغاء',
+        'withdrawal_success': 'سيتم إيداع NFT الخاص بك في حسابك خلال اليومين العمل التاليين.',
+        'withdrawal_canceled': 'تم إلغاء العملية.',
+        'insufficient_balance': 'رصيد غير كاف!',
+        'invalid_nft': 'اختيار NFT غير صالح!',
+        'language': 'اللغة',
+        'collectible': 'مجموعة #{number}',
+        'owner': 'المالك: {owner}',
+        'model': 'النموذج: Lava Viper 5%',
+        'symbol': 'الرمز: Magic Wand 0.6%',
+        'backdrop': 'الخلفية: Persimmon 1.2%',
+        'quantity': 'الكمية: 121,825/279,106 صادرة',
+        'value': 'القيمة: ~${value} [تعلم المزيد]'
+    },
+    'ru': {
+        'welcome': 'Добро пожаловать в @PlushNFTbot!',
+        'captcha_prompt': 'Введите имя этого эмодзи на английском: {name}',
+        'incorrect_captcha': 'Неверно! Попробуйте /start снова.',
+        'main_menu': 'Главное меню:',
+        'profile': 'Профиль',
+        'referral_link': 'Реферальная ссылка',
+        'your_referral_link': 'Ваша реферальная ссылка: {link}',
+        'daily_bonus': 'Ежедневный бонус',
+        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
+        'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
+        'withdrawal': 'Вывод 📤',
+        'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
+        'option': 'Вариант {number}:\n" {name} ": *{price} TON*',
+        'user_info': 'ID пользователя: {user_id}\nРефералы: {referrals}\nДата присоединения: {join_date}\nВыводы: {withdrawals}',
+        'referral_joined': 'Пользователь {username} присоединился по вашей реферальной ссылке и 0.1 TON добавлено к вашему балансу.',
+        'request_account_id': 'Пожалуйста, введите ID вашего аккаунта для продолжения вывода.',
+        'confirm_purchase': 'Вы уверены, что хотите приобрести этот NFT с вычетом необходимого баланса?',
+        'confirm': '✅ Подтвердить',
+        'cancel': '❌ Отменить',
+        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунт в течение следующих 2 рабочих дней.',
+        'withdrawal_canceled': 'Операция отменена.',
+        'insufficient_balance': 'Недостаточно баланса!',
+        'invalid_nft': 'Недействительный выбор NFT!',
+        'language': 'Язык',
+        'collectible': 'Коллекционный #{number}',
+        'owner': 'Владелец: {owner}',
+        'model': 'Модель: Lava Viper 5%',
+        'symbol': 'Символ: Magic Wand 0.6%',
+        'backdrop': 'Фон: Persimmon 1.2%',
+        'quantity': 'Количество: 121,825/279,106 выдано',
+        'value': 'Значение: ~${value} [узнать больше]'
+    },
+    'fr': {
+        'welcome': 'Bienvenue sur @PlushNFTbot!',
+        'captcha_prompt': 'Tapez le nom de cet emoji en anglais: {name}',
+        'incorrect_captcha': 'Incorrect! Essayez /start à nouveau.',
+        'main_menu': 'Menu principal:',
+        'profile': 'Profil',
+        'referral_link': 'Lien de parrainage',
+        'your_referral_link': 'Votre lien de parrainage: {link}',
+        'daily_bonus': 'Bonus quotidien',
+        'claimed_bonus': 'Vous avez réclamé 0.1 TON bonus quotidien!',
+        'already_claimed_bonus': 'Vous avez déjà réclamé le bonus d\'aujourd\'hui!',
+        'withdrawal': 'Retrait 📤',
+        'withdrawal_prompt': 'Selon le solde de votre compte, sélectionnez l\'un des NFT suivants dans la liste et soumettez votre demande de retrait avec le bouton en verre👇',
+        'option': 'Option {number}:\n" {name} ": *{price} TON*',
+        'user_info': 'ID utilisateur: {user_id}\nParrainages: {referrals}\nDate d\'inscription: {join_date}\nRetraits: {withdrawals}',
+        'referral_joined': 'L\'utilisateur {username} a rejoint via votre lien de parrainage et 0.1 TON ajouté à votre solde.',
+        'request_account_id': 'Veuillez entrer votre ID de compte pour continuer le retrait.',
+        'confirm_purchase': 'Êtes-vous sûr de vouloir acheter ce NFT avec le solde requis déduit?',
+        'confirm': '✅ Confirmer',
+        'cancel': '❌ Annuler',
+        'withdrawal_success': 'Votre NFT sera déposé dans votre compte dans les 2 prochains jours ouvrables.',
+        'withdrawal_canceled': 'Opération annulée.',
+        'insufficient_balance': 'Solde insuffisant!',
+        'invalid_nft': 'Sélection NFT invalide!',
+        'language': 'Langue',
+        'collectible': 'Collectible #{number}',
+        'owner': 'Propriétaire: {owner}',
+        'model': 'Modèle: Lava Viper 5%',
+        'symbol': 'Symbole: Magic Wand 0.6%',
+        'backdrop': 'Fond: Persimmon 1.2%',
+        'quantity': 'Quantité: 121,825/279,106 émis',
+        'value': 'Valeur: ~${value} [en savoir plus]'
+    }
+}
+
+# تابع برای گرفتن ترجمه
+def get_text(user_id, key, **kwargs):
+    cursor.execute("SELECT language FROM users WHERE user_id=?", (user_id,))
+    lang = cursor.fetchone()
+    lang = lang[0] if lang else 'en'
+    text = TRANSLATIONS.get(lang, TRANSLATIONS['en']).get(key, key)
+    return text.format(**kwargs)
+
+# اتصال دیتابیس
+conn = sqlite3.connect('users.db', check_same_thread=False)
+cursor = conn.cursor()
+cursor.execute('''CREATE TABLE IF NOT EXISTS users 
+                  (user_id INTEGER PRIMARY KEY, referrer_id INTEGER, join_date DATETIME, referrals INTEGER DEFAULT 0, 
+                   balance REAL DEFAULT 0.0, withdrawals INTEGER DEFAULT 0, last_bonus DATETIME, language TEXT DEFAULT 'en')''')
+conn.commit()
+
+# تابع برای تولید لینک رفرال
+def get_referral_link(user_id):
+    return f"https://t.me/your_bot_username?start={user_id}"  # جایگزین your_bot_username
+
+# هندلر /start
+async def start(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id
+    args = context.args
+    referrer_id = int(args[0]) if args else None
+
+    cursor.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
+    if cursor.fetchone():
+        await show_menu(update, context)
+        return
+
+    emoji = random.choice(list(EMOJIS.keys()))
+    name = EMOJIS[emoji]
+    options = random.sample(list(EMOJIS.keys()), 4)
+    if emoji not in options:
+        options[random.randint(0, 3)] = emoji
+
+    keyboard = [[InlineKeyboardButton(opt, callback_data=f"captcha_{opt}_{emoji}") for opt in options]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(get_text(user_id, 'captcha_prompt', name=name), reply_markup=reply_markup)
+    context.user_data['referrer_id'] = referrer_id
+    context.user_data['captcha_emoji'] = emoji
+
+# هندلر callback برای کپچا
+async def captcha_callback(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    data = query.data.split('_')
+    selected = data[1]
+    correct = data[2]
+
+    await query.answer()
+    if selected == correct:
+        user_id = query.from_user.id
+        referrer_id = context.user_data.get('referrer_id')
+
+        join_date = datetime.datetime.now()
+        cursor.execute("INSERT INTO users (user_id, referrer_id, join_date, language) VALUES (?, ?, ?, ?)", 
+                       (user_id, referrer_id, join_date, 'en'))
+        conn.commit()
+
+        if referrer_id:
+            cursor.execute("UPDATE users SET referrals = referrals + 1, balance = balance + 0.1 WHERE user_id=?", (referrer_id,))
+            conn.commit()
+            username = query.from_user.username or "Anonymous"
+            await context.bot.send_message(referrer_id, get_text(referrer_id, 'referral_joined', username=username))
+
+        await query.edit_message_text(get_text(user_id, 'welcome'))
+        await show_menu(update, context)
+    else:
+        await query.edit_message_text(get_text(query.from_user.id, 'incorrect_captcha'))
+
+# نمایش منو
+async def show_menu(update: Update, context: CallbackContext) -> None:
+    user_id = update.callback_query.from_user.id if update.callback_query else update.message.from_user.id
+    keyboard = [
+        [InlineKeyboardButton(get_text(user_id, 'profile'), callback_data="profile")],
+        [InlineKeyboardButton(get_text(user_id, 'referral_link'), callback_data="referral")],
+        [InlineKeyboardButton(get_text(user_id, 'daily_bonus'), callback_data="daily_bonus")],
+        [InlineKeyboardButton(get_text(user_id, 'withdrawal'), callback_data="withdrawal")],
+        [InlineKeyboardButton(get_text(user_id, 'language'), callback_data="language")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    text = get_text(user_id, 'main_menu')
+    if update.callback_query:
+        await update.callback_query.answer()
+        await update.callback_query.edit_message_text(text, reply_markup=reply_markup)
+    else:
+        await update.message.reply_text(text, reply_markup=reply_markup)
+
+# هندلر callback برای منو
+async def menu_callback(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    data = query.data
+    user_id = query.from_user.id
+
+    await query.answer()
+
+    if data == "profile":
+        cursor.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
+        user = cursor.fetchone()
+        user_info = get_text(user_id, 'user_info', user_id=user[0], referrals=user[3], join_date=user[2], withdrawals=user[5])
+        await query.edit_message_text(user_info)
+        await show_menu(update, context)
+
+    elif data == "referral":
+        link = get_referral_link(user_id)
+        await query.edit_message_text(get_text(user_id, 'your_referral_link', link=link))
+        await show_menu(update, context)
+
+    elif data == "daily_bonus":
+        cursor.execute("SELECT last_bonus, balance FROM users WHERE user_id=?", (user_id,))
+        last_bonus, balance = cursor.fetchone()
+        now = datetime.datetime.now()
+        if not last_bonus or (now - datetime.datetime.fromisoformat(last_bonus)) >= datetime.timedelta(days=1):
+            new_balance = balance + 0.1
+            cursor.execute("UPDATE users SET balance = ?, last_bonus = ? WHERE user_id=?", (new_balance, now, user_id))
+            conn.commit()
+            await query.edit_message_text(get_text(user_id, 'claimed_bonus'))
+        else:
+            await query.edit_message_text(get_text(user_id, 'already_claimed_bonus'))
+        await show_menu(update, context)
+
+    elif data == "withdrawal":
+        msg = get_text(user_id, 'withdrawal_prompt') + "\n\n"
+        for i, nft in enumerate(NFT_LIST, 1):
+            msg += get_text(user_id, 'option', number=i, name=nft['name'], price=nft['price']) + "\n"
+        keyboard = [[InlineKeyboardButton(nft['name'], callback_data=f"select_nft_{i-1}") for i, nft in enumerate(NFT_LIST, 1)]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(msg, parse_mode='Markdown', reply_markup=reply_markup)
+        context.user_data['withdrawal_mode'] = True
+
+    elif data == "language":
+        keyboard = [
+            [InlineKeyboardButton("English", callback_data="lang_en")],
+            [InlineKeyboardButton("فارسی", callback_data="lang_fa")],
+            [InlineKeyboardButton("عربي", callback_data="lang_ar")],
+            [InlineKeyboardButton("Русский", callback_data="lang_ru")],
+            [InlineKeyboardButton("Français", callback_data="lang_fr")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text("Select language:", reply_markup=reply_markup)
+
+# هندلر برای تغییر زبان
+async def change_language(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    data = query.data
+    user_id = query.from_user.id
+    lang = data.split('_')[1]
+
+    cursor.execute("UPDATE users SET language = ? WHERE user_id=?", (lang, user_id))
+    conn.commit()
+
+    await query.answer("Language changed!")
+    await show_menu(update, context)
+
+# هندلر برای انتخاب NFT
+async def select_nft(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    data = query.data.split('_')
+    if data[0] == "select" and data[1] == "nft":
+        index = int(data[2])
+        nft = NFT_LIST[index]
+        user_id = query.from_user.id
+
+        cursor.execute("SELECT balance FROM users WHERE user_id=?", (user_id,))
+        balance = cursor.fetchone()[0]
+
+        if balance >= nft['price']:
+            context.user_data['selected_nft'] = nft
+            await query.edit_message_text(get_text(user_id, 'request_account_id'))
+            context.user_data['awaiting_account_id'] = True
+        else:
+            await query.edit_message_text(get_text(user_id, 'insufficient_balance'))
+            await show_menu(update, context)
+
+# هندلر پیام برای دریافت آیدی حساب
+async def handle_message(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id
+    if context.user_data.get('awaiting_account_id'):
+        account_id = update.message.text.strip()
+        nft = context.user_data.get('selected_nft')
+        if nft:
+            keyboard = [
+                [InlineKeyboardButton(get_text(user_id, 'confirm'), callback_data="confirm_purchase")],
+                [InlineKeyboardButton(get_text(user_id, 'cancel'), callback_data="cancel_purchase")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(get_text(user_id, 'confirm_purchase'), reply_markup=reply_markup)
+            context.user_data['account_id'] = account_id
+            context.user_data['awaiting_account_id'] = False
+        else:
+            await update.message.reply_text(get_text(user_id, 'invalid_nft'))
+            await show_menu(update, context)
+
+# هندلر برای تأیید یا لغو خرید
+async def handle_purchase(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    data = query.data
+    user_id = query.from_user.id
+    nft = context.user_data.get('selected_nft')
+    account_id = context.user_data.get('account_id')
+
+    if data == "confirm_purchase" and nft:
+        cursor.execute("SELECT balance FROM users WHERE user_id=?", (user_id,))
+        balance = cursor.fetchone()[0]
+        if balance >= nft['price']:
+            new_balance = balance - nft['price']
+            cursor.execute("UPDATE users SET balance = ?, withdrawals = withdrawals + 1 WHERE user_id=?", (new_balance, user_id))
+            conn.commit()
+            await send_ton(nft['price'], user_id)
+            await query.edit_message_text(get_text(user_id, 'withdrawal_success'))
+        else:
+            await query.edit_message_text(get_text(user_id, 'insufficient_balance'))
+        await show_menu(update, context)
+    elif data == "cancel_purchase":
+        await query.edit_message_text(get_text(user_id, 'withdrawal_canceled'))
+        await show_menu(update, context)
+
+# تابع ارسال TON (سimple‌سازی شده)
+async def send_ton(amount, to_user_id):
+    logger.info(f"Simulating send {amount} TON to user {to_user_id}")
+
+def main() -> None:
+    application = Application.builder().token(os.getenv('BOT_TOKEN', "YOUR_BOT_TOKEN")).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
+    application.add_handler(CallbackQueryHandler(menu_callback))
+    application.add_handler(CallbackQueryHandler(change_language, pattern="^lang_"))
+    application.add_handler(CallbackQueryHandler(select_nft, pattern="^select_nft_"))
+    application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^confirm_purchase|^cancel_purchase"))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
