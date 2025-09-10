@@ -563,8 +563,8 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # اجرای بوت با run_polling
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    # اجرای بوت بدون وابستگی به Updater
+    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 if __name__ == '__main__':
     main()
