@@ -4,12 +4,6 @@ import random
 import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
-from tonsdk.contract.wallet import WalletVersionEnum, Wallets
-from tonsdk.utils import Address, to_nano
-from tonsdk.provider import ToncenterClient
-from tonsdk.boc import Cell
-from pytonconnect import TonConnect
-import os
 
 # تنظیم لاگینگ
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -40,13 +34,6 @@ NFT_LIST = [
     {'name': 'Snoop Cigar', 'price': 7.2}
 ]
 
-# تنظیمات TON
-API_KEY = os.getenv('TON_API_KEY', 'your_toncenter_api_key')
-CLIENT = ToncenterClient(key=API_KEY, testnet=True)
-MNEMONICS = os.getenv('WALLET_MNEMONICS', 'your wallet mnemonics').split()
-_, _, _, WALLET = Wallets.from_mnemonics(MNEMONICS, WalletVersionEnum.v4r2, 0)
-WALLET_ADDRESS = WALLET.address.to_string(True, True, True)
-
 # دیکشنری ترجمه‌ها
 TRANSLATIONS = {
     'en': {
@@ -74,13 +61,19 @@ TRANSLATIONS = {
         'insufficient_balance': 'Insufficient balance!',
         'invalid_nft': 'Invalid NFT selection!',
         'language': 'Language',
-        'collectible': 'Collectible #{number}',
-        'owner': 'Owner: {owner}',
-        'model': 'Model: Lava Viper 5%',
-        'symbol': 'Symbol: Magic Wand 0.6%',
-        'backdrop': 'Backdrop: Persimmon 1.2%',
-        'quantity': 'Quantity: 121,825/279,106 issued',
-        'value': 'Value: ~${value} [learn more]'
+        'admin_menu': 'Admin Menu:',
+        'list_users': 'List Users',
+        'list_requests': 'List Withdrawal Requests',
+        'broadcast': 'Broadcast Message',
+        'users_list': 'Users List:\n{users}',
+        'requests_list': 'Withdrawal Requests:\n{requests}',
+        'enter_broadcast': 'Enter the message to broadcast to all users.',
+        'broadcast_sent': 'Message sent to all users.',
+        'approve': 'Approve',
+        'reject': 'Reject',
+        'request_approved': 'Request approved.',
+        'request_rejected': 'Request rejected.',
+        'not_admin': 'You are not the admin!'
     },
     'fa': {
         'welcome': 'خوش آمدید به @PlushNFTbot!',
@@ -107,13 +100,19 @@ TRANSLATIONS = {
         'insufficient_balance': 'موجودی کافی نیست!',
         'invalid_nft': 'انتخاب NFT نامعتبر!',
         'language': 'زبان',
-        'collectible': 'کلکسیبل #{number}',
-        'owner': 'صاحب: {owner}',
-        'model': 'مدل: Lava Viper 5%',
-        'symbol': 'نماد: Magic Wand 0.6%',
-        'backdrop': 'پس‌زمینه: Persimmon 1.2%',
-        'quantity': 'مقدار: 121,825/279,106 صادر شده',
-        'value': 'ارزش: ~${value} [بیشتر بدانید]'
+        'admin_menu': 'منوی ادمین:',
+        'list_users': 'لیست کاربران',
+        'list_requests': 'لیست درخواست‌های برداشت',
+        'broadcast': 'ارسال پیام گروهی',
+        'users_list': 'لیست کاربران:\n{users}',
+        'requests_list': 'لیست درخواست‌های برداشت:\n{requests}',
+        'enter_broadcast': 'پیام برای ارسال به همه کاربران را وارد کنید.',
+        'broadcast_sent': 'پیام به همه کاربران ارسال شد.',
+        'approve': 'تأیید',
+        'reject': 'رد',
+        'request_approved': 'درخواست تأیید شد.',
+        'request_rejected': 'درخواست رد شد.',
+        'not_admin': 'شما ادمین نیستید!'
     },
     'ar': {
         'welcome': 'مرحبا بك في @PlushNFTbot!',
@@ -140,13 +139,19 @@ TRANSLATIONS = {
         'insufficient_balance': 'رصيد غير كاف!',
         'invalid_nft': 'اختيار NFT غير صالح!',
         'language': 'اللغة',
-        'collectible': 'مجموعة #{number}',
-        'owner': 'المالك: {owner}',
-        'model': 'النموذج: Lava Viper 5%',
-        'symbol': 'الرمز: Magic Wand 0.6%',
-        'backdrop': 'الخلفية: Persimmon 1.2%',
-        'quantity': 'الكمية: 121,825/279,106 صادرة',
-        'value': 'القيمة: ~${value} [تعلم المزيد]'
+        'admin_menu': 'قائمة الإدارة:',
+        'list_users': 'قائمة المستخدمين',
+        'list_requests': 'قائمة طلبات السحب',
+        'broadcast': 'إرسال رسالة جماعية',
+        'users_list': 'قائمة المستخدمين:\n{users}',
+        'requests_list': 'قائمة طلبات السحب:\n{requests}',
+        'enter_broadcast': 'أدخل الرسالة لإرسالها إلى جميع المستخدمين.',
+        'broadcast_sent': 'تم إرسال الرسالة إلى جميع المستخدمين.',
+        'approve': 'موافقة',
+        'reject': 'رفض',
+        'request_approved': 'تم الموافقة على الطلب.',
+        'request_rejected': 'تم رفض الطلب.',
+        'not_admin': 'أنت لست الإداري!'
     },
     'ru': {
         'welcome': 'Добро пожаловать в @PlushNFTbot!',
@@ -173,13 +178,19 @@ TRANSLATIONS = {
         'insufficient_balance': 'Недостаточно баланса!',
         'invalid_nft': 'Недействительный выбор NFT!',
         'language': 'Язык',
-        'collectible': 'Коллекционный #{number}',
-        'owner': 'Владелец: {owner}',
-        'model': 'Модель: Lava Viper 5%',
-        'symbol': 'Символ: Magic Wand 0.6%',
-        'backdrop': 'Фон: Persimmon 1.2%',
-        'quantity': 'Количество: 121,825/279,106 выдано',
-        'value': 'Значение: ~${value} [узнать больше]'
+        'admin_menu': 'Меню админа:',
+        'list_users': 'Список пользователей',
+        'list_requests': 'Список запросов на вывод',
+        'broadcast': 'Рассылка сообщения',
+        'users_list': 'Список пользователей:\n{users}',
+        'requests_list': 'Список запросов на вывод:\n{requests}',
+        'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
+        'broadcast_sent': 'Сообщение отправлено всем пользователям.',
+        'approve': 'Одобрить',
+        'reject': 'Отклонить',
+        'request_approved': 'Запрос одобрен.',
+        'request_rejected': 'Запрос отклонен.',
+        'not_admin': 'Вы не админ!'
     },
     'fr': {
         'welcome': 'Bienvenue sur @PlushNFTbot!',
@@ -206,15 +217,34 @@ TRANSLATIONS = {
         'insufficient_balance': 'Solde insuffisant!',
         'invalid_nft': 'Sélection NFT invalide!',
         'language': 'Langue',
-        'collectible': 'Collectible #{number}',
-        'owner': 'Propriétaire: {owner}',
-        'model': 'Modèle: Lava Viper 5%',
-        'symbol': 'Symbole: Magic Wand 0.6%',
-        'backdrop': 'Fond: Persimmon 1.2%',
-        'quantity': 'Quantité: 121,825/279,106 émis',
-        'value': 'Valeur: ~${value} [en savoir plus]'
+        'admin_menu': 'Menu admin:',
+        'list_users': 'Liste des utilisateurs',
+        'list_requests': 'Liste des demandes de retrait',
+        'broadcast': 'Diffusion de message',
+        'users_list': 'Liste des utilisateurs:\n{users}',
+        'requests_list': 'Liste des demandes de retrait:\n{requests}',
+        'enter_broadcast': 'Entrez le message à diffuser à tous les utilisateurs.',
+        'broadcast_sent': 'Message envoyé à tous les utilisateurs.',
+        'approve': 'Approuver',
+        'reject': 'Rejeter',
+        'request_approved': 'Demande approuvée.',
+        'request_rejected': 'Demande rejetée.',
+        'not_admin': 'Vous n\'êtes pas l\'admin!'
     }
 }
+
+# آیدی ادمین (جایگزین با آیدی عددی تلگرام خودت)
+ADMIN_ID = 123456789  # جایگزین با آیدی واقعی تلگرامت
+
+# اتصال دیتابیس
+conn = sqlite3.connect('users.db', check_same_thread=False)
+cursor = conn.cursor()
+cursor.execute('''CREATE TABLE IF NOT EXISTS users 
+                  (user_id INTEGER PRIMARY KEY, referrer_id INTEGER, join_date DATETIME, referrals INTEGER DEFAULT 0, 
+                   balance REAL DEFAULT 0.0, withdrawals INTEGER DEFAULT 0, last_bonus DATETIME, language TEXT DEFAULT 'en')''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS requests 
+                  (request_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, nft_name TEXT, account_id TEXT, status TEXT DEFAULT 'pending')''')
+conn.commit()
 
 # تابع برای گرفتن ترجمه
 def get_text(user_id, key, **kwargs):
@@ -223,14 +253,6 @@ def get_text(user_id, key, **kwargs):
     lang = lang[0] if lang else 'en'
     text = TRANSLATIONS.get(lang, TRANSLATIONS['en']).get(key, key)
     return text.format(**kwargs)
-
-# اتصال دیتابیس
-conn = sqlite3.connect('users.db', check_same_thread=False)
-cursor = conn.cursor()
-cursor.execute('''CREATE TABLE IF NOT EXISTS users 
-                  (user_id INTEGER PRIMARY KEY, referrer_id INTEGER, join_date DATETIME, referrals INTEGER DEFAULT 0, 
-                   balance REAL DEFAULT 0.0, withdrawals INTEGER DEFAULT 0, last_bonus DATETIME, language TEXT DEFAULT 'en')''')
-conn.commit()
 
 # تابع برای تولید لینک رفرال
 def get_referral_link(user_id):
@@ -393,11 +415,12 @@ async def select_nft(update: Update, context: CallbackContext) -> None:
             await query.edit_message_text(get_text(user_id, 'insufficient_balance'))
             await show_menu(update, context)
 
-# هندلر پیام برای دریافت آیدی حساب
+# هندلر پیام برای دریافت آیدی حساب و پیام‌های دیگر
 async def handle_message(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
+    text = update.message.text.strip()
+
     if context.user_data.get('awaiting_account_id'):
-        account_id = update.message.text.strip()
         nft = context.user_data.get('selected_nft')
         if nft:
             keyboard = [
@@ -406,11 +429,23 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text(get_text(user_id, 'confirm_purchase'), reply_markup=reply_markup)
-            context.user_data['account_id'] = account_id
+            context.user_data['account_id'] = text
             context.user_data['awaiting_account_id'] = False
         else:
             await update.message.reply_text(get_text(user_id, 'invalid_nft'))
             await show_menu(update, context)
+    elif context.user_data.get('awaiting_broadcast') and user_id == ADMIN_ID:
+        # ارسال پیام گروهی
+        cursor.execute("SELECT user_id FROM users")
+        users = cursor.fetchall()
+        for u in users:
+            try:
+                await context.bot.send_message(u[0], text)
+            except:
+                pass
+        await update.message.reply_text(get_text(user_id, 'broadcast_sent'))
+        context.user_data['awaiting_broadcast'] = False
+        await show_admin_menu(update, context)
 
 # هندلر برای تأیید یا لغو خرید
 async def handle_purchase(update: Update, context: CallbackContext) -> None:
@@ -427,7 +462,9 @@ async def handle_purchase(update: Update, context: CallbackContext) -> None:
             new_balance = balance - nft['price']
             cursor.execute("UPDATE users SET balance = ?, withdrawals = withdrawals + 1 WHERE user_id=?", (new_balance, user_id))
             conn.commit()
-            await send_ton(nft['price'], user_id)
+            cursor.execute("INSERT INTO requests (user_id, nft_name, account_id) VALUES (?, ?, ?)", (user_id, nft['name'], account_id))
+            conn.commit()
+            await context.bot.send_message(ADMIN_ID, f"New withdrawal request from user {user_id}: NFT {nft['name']}, Account ID: {account_id}")
             await query.edit_message_text(get_text(user_id, 'withdrawal_success'))
         else:
             await query.edit_message_text(get_text(user_id, 'insufficient_balance'))
@@ -436,22 +473,96 @@ async def handle_purchase(update: Update, context: CallbackContext) -> None:
         await query.edit_message_text(get_text(user_id, 'withdrawal_canceled'))
         await show_menu(update, context)
 
-# تابع ارسال TON (سimple‌سازی شده)
-async def send_ton(amount, to_user_id):
-    logger.info(f"Simulating send {amount} TON to user {to_user_id}")
+# هندلر /admin برای ادمین
+async def admin(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id
+    if user_id == ADMIN_ID:
+        await show_admin_menu(update, context)
+    else:
+        await update.message.reply_text(get_text(user_id, 'not_admin'))
 
+# نمایش منو ادمین
+async def show_admin_menu(update: Update, context: CallbackContext) -> None:
+    user_id = update.callback_query.from_user.id if update.callback_query else update.message.from_user.id
+    keyboard = [
+        [InlineKeyboardButton(get_text(user_id, 'list_users'), callback_data="admin_list_users")],
+        [InlineKeyboardButton(get_text(user_id, 'list_requests'), callback_data="admin_list_requests")],
+        [InlineKeyboardButton(get_text(user_id, 'broadcast'), callback_data="admin_broadcast")],
+        [InlineKeyboardButton("Back to Main Menu", callback_data="main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    text = get_text(user_id, 'admin_menu')
+    if update.callback_query:
+        await update.callback_query.answer()
+        await update.callback_query.edit_message_text(text, reply_markup=reply_markup)
+    else:
+        await update.message.reply_text(text, reply_markup=reply_markup)
+
+# هندلر callback برای ادمین
+async def admin_callback(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    data = query.data
+    user_id = query.from_user.id
+
+    if user_id != ADMIN_ID:
+        await query.answer(get_text(user_id, 'not_admin'))
+        return
+
+    await query.answer()
+
+    if data == "admin_list_users":
+        cursor.execute("SELECT user_id, balance FROM users")
+        users = cursor.fetchall()
+        msg = get_text(user_id, 'users_list', users='\n'.join([f"User {u[0]}: Balance {u[1]} TON" for u in users]))
+        await query.edit_message_text(msg)
+        await show_admin_menu(update, context)
+
+    elif data == "admin_list_requests":
+        cursor.execute("SELECT request_id, user_id, nft_name, account_id, status FROM requests")
+        requests = cursor.fetchall()
+        msg = get_text(user_id, 'requests_list', requests='\n'.join([f"ID {r[0]}: User {r[1]}, NFT {r[2]}, Account {r[3]}, Status {r[4]}" for r in requests]))
+        keyboard = [[InlineKeyboardButton(f"{get_text(user_id, 'approve')} {r[0]}", callback_data=f"admin_approve_{r[0]}"),
+                     InlineKeyboardButton(f"{get_text(user_id, 'reject')} {r[0]}", callback_data=f"admin_reject_{r[0]}")] for r in requests]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(msg, reply_markup=reply_markup)
+
+    elif data == "admin_broadcast":
+        await query.edit_message_text(get_text(user_id, 'enter_broadcast'))
+        context.user_data['awaiting_broadcast'] = True
+
+    elif data.startswith("admin_approve_"):
+        request_id = int(data.split('_')[2])
+        cursor.execute("UPDATE requests SET status = 'approved' WHERE request_id=?", (request_id,))
+        conn.commit()
+        await query.edit_message_text(get_text(user_id, 'request_approved'))
+        await show_admin_menu(update, context)
+
+    elif data.startswith("admin_reject_"):
+        request_id = int(data.split('_')[2])
+        cursor.execute("UPDATE requests SET status = 'rejected' WHERE request_id=?", (request_id,))
+        conn.commit()
+        await query.edit_message_text(get_text(user_id, 'request_rejected'))
+        await show_admin_menu(update, context)
+
+    elif data == "main_menu":
+        await show_menu(update, context)
+
+# تنظیمات اصلی
 def main() -> None:
-    application = Application.builder().token(os.getenv('BOT_TOKEN', "YOUR_BOT_TOKEN")).build()
+    application = Application.builder().token("YOUR_ACTUAL_BOT_TOKEN").build()  # جایگزین با توکن واقعی بات
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("admin", admin))
     application.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
     application.add_handler(CallbackQueryHandler(menu_callback))
     application.add_handler(CallbackQueryHandler(change_language, pattern="^lang_"))
     application.add_handler(CallbackQueryHandler(select_nft, pattern="^select_nft_"))
     application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^confirm_purchase|^cancel_purchase"))
+    application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     application.run_polling()
 
 if __name__ == '__main__':
-    main()
+    main() 
