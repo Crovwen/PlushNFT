@@ -550,7 +550,7 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     # ساخت Application با توکن مستقیم
-    application = Application.builder().token("7593433447:AAFX4agluJXPxjqxySNHG82_b01oroR8XbE").build()
+    application = Application.builder().token("7593433447:AAGVgxzFtchP-hE4vfyY0ubkq31ODwADXTI").build()
 
     # اضافه کردن هندلرها
     application.add_handler(CommandHandler("start", start))
