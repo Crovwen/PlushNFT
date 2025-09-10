@@ -256,7 +256,7 @@ def get_text(user_id, key, **kwargs):
 
 # تابع برای تولید لینک رفرال
 def get_referral_link(user_id):
-    return f"https://t.me/your_bot_username?start={user_id}"  # جایگزین your_bot_username
+    return f"https://t.me/PlushNFTbot?start={user_id}"  # جایگزین your_bot_username
 
 # هندلر /start
 async def start(update: Update, context: CallbackContext) -> None:
