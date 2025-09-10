@@ -550,19 +550,26 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
 
 # تنظیمات اصلی
 def main() -> None:
-    application = Application.builder().token("7593433447:AAFX4agluJXPxjqxySNHG82_b01oroR8XbE").build()  # جایگزین با توکن واقعی بات
+    # ساخت Updater با توکن مستقیم
+    updater = Updater("7593433447:AAFX4agluJXPxjqxySNHG82_b01oroR8XbE", use_context=True)
 
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("admin", admin))
-    application.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
-    application.add_handler(CallbackQueryHandler(menu_callback))
-    application.add_handler(CallbackQueryHandler(change_language, pattern="^lang_"))
-    application.add_handler(CallbackQueryHandler(select_nft, pattern="^select_nft_"))
-    application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^confirm_purchase|^cancel_purchase"))
-    application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    # دریافت Dispatcher
+    dp = updater.dispatcher
 
-    application.run_polling()
+    # اضافه کردن هندلرها
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("admin", admin))
+    dp.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
+    dp.add_handler(CallbackQueryHandler(menu_callback))
+    dp.add_handler(CallbackQueryHandler(change_language, pattern="^lang_"))
+    dp.add_handler(CallbackQueryHandler(select_nft, pattern="^select_nft_"))
+    dp.add_handler(CallbackQueryHandler(handle_purchase, pattern="^confirm_purchase|^cancel_purchase"))
+    dp.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+
+    # شروع بوت
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
-    main() 
+    main()
