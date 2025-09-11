@@ -179,7 +179,7 @@ TRANSLATIONS = {
         'confirm_purchase': 'Вы уверены, что хотите приобрести этот NFT с вычетом необходимого баланса?',
         'confirm': '✅ Подтвердить',
         'cancel': '❌ Отменить',
-        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунت в течение следующих 2 рабочих дней.',
+        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунт в течение следующих 2 рабочих дней.',
         'withdrawal_canceled': 'Операция отменена.',
         'insufficient_balance': 'Недостаточно баланса!',
         'invalid_nft': 'Недействительный выбор NFT!',
@@ -554,14 +554,6 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
     elif data == "main_menu":
         await show_menu(update, context)
 
-async def run_polling(application):
-    logger.info("Starting Telegram polling...")
-    try:
-        await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
-    except Exception as e:
-        logger.error(f"Polling failed: {e}")
-        raise
-
 def run_flask():
     app = Flask(__name__)
     port = int(os.getenv("PORT", 10000))
@@ -573,9 +565,17 @@ def run_flask():
 
     app.run(host='0.0.0.0', port=port, use_reloader=False)
 
-def main() -> None:
+async def run_polling(application):
+    logger.info("Starting Telegram polling...")
+    try:
+        await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    except Exception as e:
+        logger.error(f"Polling failed: {e}")
+        raise
+
+def main():
     # ساخت Application با توکن مستقیم
-    token = "7593433447:AAGVgxzFtchP-hE4vfyY0ubkq31ODwADXTI"  # جایگزین با توکن واقعی
+    token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # جایگزین با توکن واقعی
     logger.info(f"Initializing application with token: {token[:10]}...")
     application = Application.builder().token(token).build()
 
@@ -590,20 +590,23 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+    # تنظیم حلقه رویداد به‌صورت دستی
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     # اجرای همزمان polling و Flask
-    loop = asyncio.get_event_loop()
-    polling_task = loop.create_task(run_polling(application))
-    flask_executor = loop.run_in_executor(None, run_flask)
+    async def run_all():
+        polling_task = asyncio.create_task(run_polling(application))
+        flask_executor = loop.run_in_executor(None, run_flask)
+        await polling_task
 
     try:
         logger.info("Running main event loop...")
-        loop.run_forever()
+        loop.run_until_complete(run_all())
     except KeyboardInterrupt:
         logger.info("Shutting down...")
     finally:
-        polling_task.cancel()
-        loop.run_until_complete(asyncio.sleep(0.1))  # دادن زمان برای لغو تسک
         loop.close()
 
 if __name__ == '__main__':
-    main() 
+    main()
