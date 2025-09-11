@@ -2,11 +2,9 @@ import logging
 import sqlite3
 import random
 import datetime
-import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
 import asyncio
-from flask import Flask
 
 # تنظیم لاگینگ
 logging.basicConfig(
@@ -190,8 +188,8 @@ TRANSLATIONS = {
         'broadcast': 'Рассылка сообщения',
         'users_list': 'Список пользователей:\n{users}',
         'requests_list': 'Список запросов на вывод:\n{requests}',
-        'enter_broadcast': 'Введите сообщение для рассылки всем пользователяم.',
-        'broadcast_sent': 'Сообщение отправлено всем пользователям.',
+        'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
+        'broadcast_sent': 'Сообщение отправлено всем пользователяم.',
         'approve': 'Одобрить',
         'reject': 'Отклонить',
         'request_approved': 'Запрос одобрен.',
@@ -554,37 +552,11 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
     elif data == "main_menu":
         await show_menu(update, context)
 
-async def run_polling(application):
-    logger.info("Starting Telegram polling...")
-    try:
-        await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
-    except Exception as e:
-        logger.error(f"Polling failed: {e}")
-        raise
-
-async def run_flask():
-    app = Flask(__name__)
-    port = int(os.getenv("PORT", 10000))
-    logger.info(f"Starting Flask server on port {port}...")
-
-    @app.route('/')
-    async def health_check():
-        return "Bot is running", 200
-
-    # استفاده از serve تا Flask به‌صورت async اجرا بشه
-    from hypercorn.config import Config
-    from hypercorn.asyncio import serve
-    config = Config()
-    config.bind = [f"0.0.0.0:{port}"]
-    await serve(app, config)
-
 async def main_async():
-    # ساخت Application با توکن مستقیم
     token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # جایگزین با توکن واقعی
     logger.info(f"Initializing application with token: {token[:10]}...")
     application = Application.builder().token(token).build()
 
-    # اضافه کردن هندلرها
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin))
     application.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
@@ -595,10 +567,8 @@ async def main_async():
     application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # اجرای همزمان polling و Flask
-    polling_task = asyncio.create_task(run_polling(application))
-    flask_task = asyncio.create_task(run_flask())
-    await asyncio.gather(polling_task, flask_task)
+    logger.info("Starting Telegram polling...")
+    await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 if __name__ == '__main__':
     asyncio.run(main_async())
