@@ -168,8 +168,8 @@ TRANSLATIONS = {
         'referral_link': 'Реферальная ссылка',
         'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус',
-        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
-        'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
+        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бونус!',
+        'already_claimed_bonus': 'Вы уже получили сегодняшний бونوس!',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
         'option': 'Вариант {number}:\n" {name} ": *{price} TON*',
@@ -193,7 +193,7 @@ TRANSLATIONS = {
         'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
         'broadcast_sent': 'Сообщение отправлено всем пользователям.',
         'approve': 'Одобрить',
-        'reject': 'Отклонить',
+        'reject': 'Откلوнить',
         'request_approved': 'Запрос одобрен.',
         'request_rejected': 'Запрос отклонен.',
         'not_admin': 'Вы не админ!'
@@ -554,6 +554,14 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
     elif data == "main_menu":
         await show_menu(update, context)
 
+async def run_polling(application):
+    logger.info("Starting Telegram polling...")
+    try:
+        await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    except Exception as e:
+        logger.error(f"Polling failed: {e}")
+        raise
+
 def run_flask():
     app = Flask(__name__)
     port = int(os.getenv("PORT", 10000))
@@ -563,17 +571,9 @@ def run_flask():
     def health_check():
         return "Bot is running", 200
 
-    app.run(host='0.0.0.0', port=port, use_reloader=False)
+    app.run(host='0.0.0.0', port=port, use_reloader=False, threaded=True)
 
-async def run_polling(application):
-    logger.info("Starting Telegram polling...")
-    try:
-        await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
-    except Exception as e:
-        logger.error(f"Polling failed: {e}")
-        raise
-
-def main():
+def main() -> None:
     # ساخت Application با توکن مستقیم
     token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # جایگزین با توکن واقعی
     logger.info(f"Initializing application with token: {token[:10]}...")
@@ -599,6 +599,7 @@ def main():
         polling_task = asyncio.create_task(run_polling(application))
         flask_executor = loop.run_in_executor(None, run_flask)
         await polling_task
+        await flask_executor  # صبر برای پایان Flask
 
     try:
         logger.info("Running main event loop...")
@@ -609,4 +610,4 @@ def main():
         loop.close()
 
 if __name__ == '__main__':
-    main()
+    main() 
