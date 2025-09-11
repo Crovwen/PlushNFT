@@ -166,7 +166,7 @@ TRANSLATIONS = {
         'referral_link': 'Реферальная ссылка',
         'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус',
-        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
+        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонوس!',
         'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
@@ -189,7 +189,7 @@ TRANSLATIONS = {
         'users_list': 'Список пользователей:\n{users}',
         'requests_list': 'Список запросов на вывод:\n{requests}',
         'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
-        'broadcast_sent': 'Сообщение отправлено всем пользователяم.',
+        'broadcast_sent': 'Сообщение отправлено всем пользователям.',
         'approve': 'Одобрить',
         'reject': 'Отклонить',
         'request_approved': 'Запрос одобрен.',
@@ -377,11 +377,11 @@ async def menu_callback(update: Update, context: CallbackContext) -> None:
 
     elif data == "language":
         keyboard = [
-            [InlineKeyboardButton("English", callback_data="lang_en")],
-            [InlineKeyboardButton("فارسی", callback_data="lang_fa")],
-            [InlineKeyboardButton("عربي", callback_data="lang_ar")],
-            [InlineKeyboardButton("Русский", callback_data="lang_ru")],
-            [InlineKeyboardButton("Français", callback_data="lang_fr")]
+            [InlineKeyboardButton("🇬🇧English", callback_data="lang_en")],
+            [InlineKeyboardButton("🇮🇷فارسی", callback_data="lang_fa")],
+            [InlineKeyboardButton("🇸🇦عربي", callback_data="lang_ar")],
+            [InlineKeyboardButton("🇷🇺Русский", callback_data="lang_ru")],
+            [InlineKeyboardButton("🇨🇵Français", callback_data="lang_fr")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Select language:", reply_markup=reply_markup)
@@ -552,6 +552,19 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
     elif data == "main_menu":
         await show_menu(update, context)
 
+def main():
+    # ایجاد و تنظیم حلقه رویداد
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # اجرای برنامه
+    try:
+        loop.run_until_complete(main_async())
+    except KeyboardInterrupt:
+        logger.info("Shutting down...")
+    finally:
+        loop.close()
+
 async def main_async():
     token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # جایگزین با توکن واقعی
     logger.info(f"Initializing application with token: {token[:10]}...")
@@ -571,4 +584,4 @@ async def main_async():
     await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 if __name__ == '__main__':
-    asyncio.run(main_async())
+    main()
