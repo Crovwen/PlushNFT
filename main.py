@@ -9,7 +9,10 @@ import asyncio
 from flask import Flask
 
 # تنظیم لاگینگ
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
 # ایموجی‌ها و نام‌ها
@@ -166,7 +169,7 @@ TRANSLATIONS = {
         'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус',
         'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
-        'already_claimed_bonus': 'Вы уже получили сегодняшний бونус!',
+        'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
         'option': 'Вариант {number}:\n" {name} ": *{price} TON*',
@@ -188,7 +191,7 @@ TRANSLATIONS = {
         'users_list': 'Список пользователей:\n{users}',
         'requests_list': 'Список запросов на вывод:\n{requests}',
         'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
-        'broadcast_sent': 'Сообщение отправлено всем пользователям.',
+        'broadcast_sent': 'Сообщение отправлено всем пользователяم.',
         'approve': 'Одобрить',
         'reject': 'Отклонить',
         'request_approved': 'Запрос одобрен.',
@@ -259,7 +262,7 @@ def get_text(user_id, key, **kwargs):
 
 # تابع برای تولید لینک رفرال
 def get_referral_link(user_id):
-    return f"https://t.me/PlushNFTBot?start={user_id}"  # جایگزین your_bot_username
+    return f"https://t.me/PlushNFTbot?start={user_id}"  # جایگزین your_bot_username
 
 # هندلر /start
 async def start(update: Update, context: CallbackContext) -> None:
@@ -444,8 +447,8 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         for u in users:
             try:
                 await context.bot.send_message(u[0], text)
-            except:
-                pass
+            except Exception as e:
+                logger.error(f"Error sending broadcast to {u[0]}: {e}")
         await update.message.reply_text(get_text(user_id, 'broadcast_sent'))
         context.user_data['awaiting_broadcast'] = False
         await show_admin_menu(update, context)
@@ -552,7 +555,12 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
         await show_menu(update, context)
 
 async def run_polling(application):
-    await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    logger.info("Starting Telegram polling...")
+    try:
+        await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    except Exception as e:
+        logger.error(f"Polling failed: {e}")
+        raise
 
 def run_flask():
     app = Flask(__name__)
@@ -563,11 +571,13 @@ def run_flask():
     def health_check():
         return "Bot is running", 200
 
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, use_reloader=False)
 
 def main() -> None:
     # ساخت Application با توکن مستقیم
-    application = Application.builder().token("7593433447:AAGVgxzFtchP-hE4vfyY0ubkq31ODwADXTI").build()
+    token = "7593433447:AAGVgxzFtchP-hE4vfyY0ubkq31ODwADXTI"  # جایگزین با توکن واقعی
+    logger.info(f"Initializing application with token: {token[:10]}...")  # فقط چند کاراکتر اول توکن رو لاگ می‌کنیم
+    application = Application.builder().token(token).build()
 
     # اضافه کردن هندلرها
     application.add_handler(CommandHandler("start", start))
@@ -584,7 +594,10 @@ def main() -> None:
     loop = asyncio.get_event_loop()
     loop.create_task(run_polling(application))
     loop.run_in_executor(None, run_flask)
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    except Exception as e:
+        logger.error(f"Main loop failed: {e}")
 
 if __name__ == '__main__':
-    main()
+    main() 
