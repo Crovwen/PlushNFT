@@ -613,7 +613,7 @@ def main():
 
     # تنظیم webhook
     port = int(os.getenv('PORT', 8443))  # پورت پیش‌فرض Render
-    webhook_url = f"https://your-render-service.onrender.com"  # جایگزین با URL سرویس Render
+    webhook_url = f"https://plushnft.onrender.com"  # جایگزین با URL سرویس Render
     logger.info(f"Setting webhook to {webhook_url} on port {port}...")
     application.run_webhook(
         listen='0.0.0.0',
