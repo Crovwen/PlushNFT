@@ -179,7 +179,7 @@ TRANSLATIONS = {
         'confirm_purchase': 'Вы уверены, что хотите приобрести этот NFT с вычетом необходимого баланса?',
         'confirm': '✅ Подтвердить',
         'cancel': '❌ Отменить',
-        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунт в течение следующих 2 рабочих дней.',
+        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунت в течение следующих 2 рабочих дней.',
         'withdrawal_canceled': 'Операция отменена.',
         'insufficient_balance': 'Недостаточно баланса!',
         'invalid_nft': 'Недействительный выбор NFT!',
@@ -191,7 +191,7 @@ TRANSLATIONS = {
         'users_list': 'Список пользователей:\n{users}',
         'requests_list': 'Список запросов на вывод:\n{requests}',
         'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
-        'broadcast_sent': 'Сообщение отправлено всем пользователяم.',
+        'broadcast_sent': 'Сообщение отправлено всем пользователям.',
         'approve': 'Одобрить',
         'reject': 'Отклонить',
         'request_approved': 'Запрос одобрен.',
@@ -576,7 +576,7 @@ def run_flask():
 def main() -> None:
     # ساخت Application با توکن مستقیم
     token = "7593433447:AAGVgxzFtchP-hE4vfyY0ubkq31ODwADXTI"  # جایگزین با توکن واقعی
-    logger.info(f"Initializing application with token: {token[:10]}...")  # فقط چند کاراکتر اول توکن رو لاگ می‌کنیم
+    logger.info(f"Initializing application with token: {token[:10]}...")
     application = Application.builder().token(token).build()
 
     # اضافه کردن هندلرها
@@ -592,12 +592,18 @@ def main() -> None:
 
     # اجرای همزمان polling و Flask
     loop = asyncio.get_event_loop()
-    loop.create_task(run_polling(application))
-    loop.run_in_executor(None, run_flask)
+    polling_task = loop.create_task(run_polling(application))
+    flask_executor = loop.run_in_executor(None, run_flask)
+
     try:
+        logger.info("Running main event loop...")
         loop.run_forever()
-    except Exception as e:
-        logger.error(f"Main loop failed: {e}")
+    except KeyboardInterrupt:
+        logger.info("Shutting down...")
+    finally:
+        polling_task.cancel()
+        loop.run_until_complete(asyncio.sleep(0.1))  # دادن زمان برای لغو تسک
+        loop.close()
 
 if __name__ == '__main__':
     main() 
