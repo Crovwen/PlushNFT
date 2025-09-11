@@ -2,8 +2,9 @@ import logging
 import sqlite3
 import random
 import datetime
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext, WebhookServer
 
 # تنظیم لاگینگ
 logging.basicConfig(
@@ -11,6 +12,16 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+# تعریف آداپتور برای datetime
+def adapt_datetime(dt):
+    return dt.isoformat()
+
+def convert_datetime(s):
+    return datetime.datetime.fromisoformat(s)
+
+sqlite3.register_adapter(datetime.datetime, adapt_datetime)
+sqlite3.register_converter("DATETIME", convert_datetime)
 
 # ایموجی‌ها و نام‌ها
 EMOJIS = {
@@ -166,10 +177,10 @@ TRANSLATIONS = {
         'main_menu': 'Главное меню:',
         'profile': 'Профиль 👤',
         'referral_link': 'Реферальная ссылка 🔗',
-        'your_referral_link': 'Ваша реفеральная ссылка: {link}',
+        'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус 🎁',
         'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус! 💰',
-        'already_claimed_bonus': 'Вы уже получили сегодняшний бонوس! ⏳',
+        'already_claimed_bonus': 'Вы уже получили сегодняшний бонус! ⏳',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
         'option': 'Вариант {number}:\n" {name} ": *{price} TON*',
@@ -245,7 +256,7 @@ TRANSLATIONS = {
 ADMIN_ID = 5095867558 # جایگزین با آیدی واقعی تلگرامت
 
 # اتصال دیتابیس
-conn = sqlite3.connect('users.db', check_same_thread=False)
+conn = sqlite3.connect('users.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES)
 cursor = conn.cursor()
 cursor.execute('''CREATE TABLE IF NOT EXISTS users 
                   (user_id INTEGER PRIMARY KEY, referrer_id INTEGER, join_date DATETIME, referrals INTEGER DEFAULT 0, 
@@ -349,7 +360,7 @@ async def menu_callback(update: Update, context: CallbackContext) -> None:
         cursor.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
         user = cursor.fetchone()
         if user:
-            user_info = get_text(user_id, 'user_info', user_id=user[0], referrals=user[3], join_date=user[2], withdrawals=user[5])
+            user_info = get_text(user_id, 'user_info', referrals=user[3], join_date=user[2], withdrawals=user[5])
             keyboard = [[InlineKeyboardButton(get_text(user_id, 'back'), callback_data="main_menu")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(user_info, reply_markup=reply_markup)
@@ -367,7 +378,7 @@ async def menu_callback(update: Update, context: CallbackContext) -> None:
         cursor.execute("SELECT last_bonus, balance FROM users WHERE user_id=?", (user_id,))
         last_bonus, balance = cursor.fetchone()
         now = datetime.datetime.now()
-        if not last_bonus or (now - datetime.datetime.fromisoformat(last_bonus)) >= datetime.timedelta(days=1):
+        if not last_bonus or (now - last_bonus) >= datetime.timedelta(days=1):
             new_balance = balance + 0.1
             cursor.execute("UPDATE users SET balance = ?, last_bonus = ? WHERE user_id=?", (new_balance, now, user_id))
             conn.commit()
@@ -586,7 +597,7 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
         await show_menu(update, context)
 
 def main():
-    token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # اینجا توکن واقعی رو که از BotFather گرفتی بذار
+    token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # جایگزین با توکن واقعی
     logger.info(f"Initializing application with token: {token[:10]}...")
     application = Application.builder().token(token).build()
 
@@ -600,8 +611,16 @@ def main():
     application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_|^admin_menu|^main_menu"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    logger.info("Starting Telegram polling...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    # تنظیم webhook
+    port = int(os.getenv('PORT', 8443))  # پورت پیش‌فرض Render
+    webhook_url = f"https://your-render-service.onrender.com"  # جایگزین با URL سرویس Render
+    logger.info(f"Setting webhook to {webhook_url} on port {port}...")
+    application.run_webhook(
+        listen='0.0.0.0',
+        port=port,
+        url_path=token,
+        webhook_url=webhook_url + '/' + token
+    )
 
 if __name__ == '__main__':
-    main() 
+    main()
