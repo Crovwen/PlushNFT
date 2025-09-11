@@ -6,7 +6,7 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
 import asyncio
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from flask import Flask
 
 # تنظیم لاگینگ
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -166,13 +166,13 @@ TRANSLATIONS = {
         'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус',
         'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
-        'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
+        'already_claimed_bonus': 'Вы уже получили сегодняшний бونус!',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
         'option': 'Вариант {number}:\n" {name} ": *{price} TON*',
         'user_info': 'ID пользователя: {user_id}\nРефералы: {referrals}\nДата присоединения: {join_date}\nВыводы: {withdrawals}',
         'referral_joined': 'Пользователь {username} присоединился по вашей реферальной ссылке и 0.1 TON добавлено к вашему балансу.',
-        'request_account_id': 'Пожалуйста, введите ID вашего аккаунتا для продолжения вывода.',
+        'request_account_id': 'Пожалуйста, введите ID вашего аккаунта для продолжения вывода.',
         'confirm_purchase': 'Вы уверены, что хотите приобрести этот NFT с вычетом необходимого баланса?',
         'confirm': '✅ Подтвердить',
         'cancel': '❌ Отменить',
@@ -237,7 +237,7 @@ TRANSLATIONS = {
 }
 
 # آیدی ادمین (جایگزین با آیدی عددی تلگرام خودت)
-ADMIN_ID = 123456789  # جایگزین با آیدی واقعی تلگرامت
+ADMIN_ID = 5095867558 # جایگزین با آیدی واقعی تلگرامت
 
 # اتصال دیتابیس
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -259,7 +259,7 @@ def get_text(user_id, key, **kwargs):
 
 # تابع برای تولید لینک رفرال
 def get_referral_link(user_id):
-    return f"https://t.me/your_bot_username?start={user_id}"  # جایگزین your_bot_username
+    return f"https://t.me/PlushNFTBot?start={user_id}"  # جایگزین your_bot_username
 
 # هندلر /start
 async def start(update: Update, context: CallbackContext) -> None:
@@ -554,16 +554,20 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
 async def run_polling(application):
     await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
-async def run_http_server():
+def run_flask():
+    app = Flask(__name__)
     port = int(os.getenv("PORT", 10000))
-    server_address = ('0.0.0.0', port)
-    httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
-    logger.info(f"Starting HTTP server on port {port}...")
-    await asyncio.get_event_loop().run_in_executor(None, httpd.serve_forever)
+    logger.info(f"Starting Flask server on port {port}...")
+
+    @app.route('/')
+    def health_check():
+        return "Bot is running", 200
+
+    app.run(host='0.0.0.0', port=port)
 
 def main() -> None:
     # ساخت Application با توکن مستقیم
-    application = Application.builder().token("7593433447:AAFX4agluJXPxjqxySNHG82_b01oroR8XbE").build()
+    application = Application.builder().token("7593433447:AAGVgxzFtchP-hE4vfyY0ubkq31ODwADXTI").build()
 
     # اضافه کردن هندلرها
     application.add_handler(CommandHandler("start", start))
@@ -576,10 +580,10 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # اجرای همزمان polling و سرور HTTP
+    # اجرای همزمان polling و Flask
     loop = asyncio.get_event_loop()
     loop.create_task(run_polling(application))
-    loop.create_task(run_http_server())
+    loop.run_in_executor(None, run_flask)
     loop.run_forever()
 
 if __name__ == '__main__':
