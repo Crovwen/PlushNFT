@@ -4,7 +4,6 @@ import random
 import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
-import asyncio
 
 # تنظیم لاگینگ
 logging.basicConfig(
@@ -166,14 +165,14 @@ TRANSLATIONS = {
         'referral_link': 'Реферальная ссылка',
         'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус',
-        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонوس!',
+        'claimed_bonus': 'Вы получили 0.1 TON ежедневный бонус!',
         'already_claimed_bonus': 'Вы уже получили сегодняшний бонус!',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
         'option': 'Вариант {number}:\n" {name} ": *{price} TON*',
         'user_info': 'ID пользователя: {user_id}\nРефералы: {referrals}\nДата присоединения: {join_date}\nВыводы: {withdrawals}',
         'referral_joined': 'Пользователь {username} присоединился по вашей реферальной ссылке и 0.1 TON добавлено к вашему балансу.',
-        'request_account_id': 'Пожалуйста, введите ID вашего аккаунта для продолжения вывода.',
+        'request_account_id': 'Пожалуйста, введите ID вашего аккаунتا для продолжения вывода.',
         'confirm_purchase': 'Вы уверены, что хотите приобрести этот NFT с вычетом необходимого баланса?',
         'confirm': '✅ Подтвердить',
         'cancel': '❌ Отменить',
@@ -553,19 +552,6 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
         await show_menu(update, context)
 
 def main():
-    # ایجاد و تنظیم حلقه رویداد
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    # اجرای برنامه
-    try:
-        loop.run_until_complete(main_async())
-    except KeyboardInterrupt:
-        logger.info("Shutting down...")
-    finally:
-        loop.close()
-
-async def main_async():
     token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # جایگزین با توکن واقعی
     logger.info(f"Initializing application with token: {token[:10]}...")
     application = Application.builder().token(token).build()
@@ -581,7 +567,7 @@ async def main_async():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     logger.info("Starting Telegram polling...")
-    await application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 if __name__ == '__main__':
     main()
