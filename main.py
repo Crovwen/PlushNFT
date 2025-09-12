@@ -4,6 +4,7 @@ import random
 import datetime
 import os
 import requests
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
 
@@ -141,7 +142,7 @@ TRANSLATIONS = {
         'your_referral_link': 'Ваша реферальная ссылка: {link}',
         'daily_bonus': 'Ежедневный бонус 🎁',
         'claimed_bonus': 'Вы получили 0.1 TON ежедневного бонуса! 💰',
-        'already_claimed_bonus': 'Вы уже получили бонус за сегодня! ⏳',
+        'already_claimed_bonus': 'Вы уже получили бонوس за сегодня! ⏳',
         'withdrawal': 'Вывод 📤',
         'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
         'option': 'Опция {number}:\n``` {name} ```: *{price} TON*',
@@ -162,7 +163,7 @@ TRANSLATIONS = {
         'broadcast': 'Рассылка сообщений 📢',
         'users_list': 'Список пользователей:\n{users}',
         'requests_list': 'Запросы на вывод:\n{requests}',
-        'enter_broadcast': 'Введите сообщение для рассылки всем пользователяم.',
+        'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
         'broadcast_sent': 'Сообщение отправлено всем пользователям. 📤',
         'approve': 'Одобрить ✅',
         'reject': 'Отклонить ❌',
@@ -598,7 +599,7 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
 
 # تابع برای تنظیم خودکار webhook
 async def set_webhook(application, bot_token):
-    port = int(os.getenv('PORT', 8443))
+    port = int(os.getenv('PORT', 10000))
     webhook_url = f"https://plushnft.onrender.com/{bot_token}"  # URL ثابت
     logger.info(f"Setting webhook to {webhook_url} on port {port}...")
     set_webhook_url = f"https://api.telegram.org/bot{bot_token}/setWebhook?url={webhook_url}"
@@ -614,10 +615,26 @@ def main():
     logger.info(f"Initializing application with token: {bot_token[:10]}...")
     application = Application.builder().token(bot_token).build()
 
-    # تنظیم خودکار webhook
-    import asyncio
-    asyncio.run(set_webhook(application, bot_token))
+    # تنظیم حلقه رویداد و اجرای Webhook
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(set_webhook(application, bot_token))
+        port = int(os.getenv('PORT', 10000))
+        webhook_url = f"https://plushnft.onrender.com/{bot_token}"  # URL ثابت
+        logger.info(f"Running webhook on {webhook_url} with port {port}...")
+        loop.run_until_complete(
+            application.run_webhook(
+                listen='0.0.0.0',
+                port=port,
+                url_path=bot_token,
+                webhook_url=webhook_url
+            )
+        )
+    finally:
+        loop.close()
 
+    # اضافه کردن هندلرها
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin))
     application.add_handler(CallbackQueryHandler(captcha_callback, pattern="^captcha_"))
@@ -628,16 +645,5 @@ def main():
     application.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_|^admin_menu|^main_menu"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # اجرای برنامه با webhook
-    port = int(os.getenv('PORT', 8443))
-    webhook_url = f"https://plushnft.onrender.com/{bot_token}"  # URL ثابت
-    logger.info(f"Running webhook on {webhook_url} with port {port}...")
-    application.run_webhook(
-        listen='0.0.0.0',
-        port=port,
-        url_path=bot_token,
-        webhook_url=webhook_url
-    )
-
 if __name__ == '__main__':
-    main()
+    main() 
