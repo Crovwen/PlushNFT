@@ -37,16 +37,16 @@ EMOJIS = {
 
 # لیست NFTها
 NFT_LIST = [
-    {'name': '```LOL Pop', 'price': 1.6```},
-    {'name': '```Holiday Drink', 'price': 1.8```},
-    {'name': '```Ginger Cookie', 'price': 1.8```},
-    {'name': '```Snoop Dogg', 'price': 2.0```},
-    {'name': '```Tama Gadget', 'price': 2.2```},
-    {'name': '```Swag Bag', 'price': 2.5```},
-    {'name': '```Snow Mittens', 'price': 3.0```},
-    {'name': '```Spy Agaric', 'price': 3.2```},
-    {'name': '```Pet Snake', 'price': 5.0```},
-    {'name': '```Snoop Cigar', 'price': 7.2```}
+    {'name': 'LOL Pop', 'price': 1.6},
+    {'name': 'Holiday Drink', 'price': 1.8},
+    {'name': 'Ginger Cookie', 'price': 1.8},
+    {'name': 'Snoop Dogg', 'price': 2.0},
+    {'name': 'Tama Gadget', 'price': 2.2},
+    {'name': 'Swag Bag', 'price': 2.5},
+    {'name': 'Snow Mittens', 'price': 3.0},
+    {'name': 'Spy Agaric', 'price': 3.2},
+    {'name': 'Pet Snake', 'price': 5.0},
+    {'name': 'Snoop Cigar', 'price': 7.2}
 ]
 
 # دیکشنری ترجمه‌ها
@@ -64,7 +64,7 @@ TRANSLATIONS = {
         'already_claimed_bonus': 'You already claimed today\'s bonus! ⏳',
         'withdrawal': 'Withdrawal 📤',
         'withdrawal_prompt': 'Depending on your account balance, select one of the following NFTs from the list and submit your withdrawal request using the glass button👇',
-        'option': 'Option {number}:\n" {name} ": *{price} TON*',
+        'option': 'Option {number}:\n``` {name} ```: *{price} TON*',
         'user_info': 'User ID: {user_id}\nReferrals: {referrals}\nJoin Date: {join_date}\nWithdrawals: {withdrawals}',
         'referral_joined': 'User {username} joined via your referral link and 0.1 TON added to your balance. 👏',
         'request_account_id': 'Please enter your account ID to proceed with the withdrawal.',
@@ -104,7 +104,7 @@ TRANSLATIONS = {
         'already_claimed_bonus': 'شما امروز پاداش را دریافت کرده‌اید! ⏳',
         'withdrawal': 'برداشت 📤',
         'withdrawal_prompt': 'با توجه به موجودی حسابتان، یکی از NFTهای زیر را از لیست انتخاب کنید و درخواست برداشت خود را با دکمه شیشه‌ای ارسال کنید👇',
-        'option': 'گزینه {number}:\n" {name} ": *{price} TON*',
+        'option': 'گزینه {number}:\n``` {name} ```: *{price} TON*',
         'user_info': 'شناسه کاربر: {user_id}\nرفرال‌ها: {referrals}\nتاریخ عضویت: {join_date}\nبرداشت‌ها: {withdrawals}',
         'referral_joined': 'کاربر {username} از طریق لینک رفرال شما پیوست و 0.1 TON به موجودی شما اضافه شد. 👏',
         'request_account_id': 'لطفاً شناسه حساب خود را برای ادامه برداشت وارد کنید.',
@@ -130,6 +130,126 @@ TRANSLATIONS = {
         'request_rejected': 'درخواست رد شد. ❌',
         'not_admin': 'شما ادمین نیستید! ⚠️',
         'back': 'بازگشت 🔙'
+    },
+    'ru': {  # روسی
+        'welcome': 'Добро пожаловать в @PlushNFTbot! 🎉',
+        'captcha_prompt': 'Введите название этого эмодзи на английском: {name}',
+        'incorrect_captcha': 'Неверно! Попробуйте /start снова. ❌',
+        'main_menu': 'Главное меню:',
+        'profile': 'Профиль 👤',
+        'referral_link': 'Реферальная ссылка 🔗',
+        'your_referral_link': 'Ваша реферальная ссылка: {link}',
+        'daily_bonus': 'Ежедневный бонус 🎁',
+        'claimed_bonus': 'Вы получили 0.1 TON ежедневного бонуса! 💰',
+        'already_claimed_bonus': 'Вы уже получили бонус за сегодня! ⏳',
+        'withdrawal': 'Вывод 📤',
+        'withdrawal_prompt': 'В зависимости от баланса вашего аккаунта, выберите один из следующих NFT из списка и отправьте запрос на вывод с помощью стеклянной кнопки👇',
+        'option': 'Опция {number}:\n``` {name} ```: *{price} TON*',
+        'user_info': 'ID пользователя: {user_id}\nРефералы: {referrals}\nДата присоединения: {join_date}\nВыводы: {withdrawals}',
+        'referral_joined': 'Пользователь {username} присоединился по вашей реферальной ссылке, и 0.1 TON добавлено к вашему балансу. 👏',
+        'request_account_id': 'Пожалуйста, введите ваш ID аккаунта для продолжения вывода.',
+        'confirm_purchase': 'Вы уверены, что хотите купить этот NFT с вычетом требуемого баланса?',
+        'confirm': '✅ Подтвердить',
+        'cancel': '❌ Отмена',
+        'withdrawal_success': 'Ваш NFT будет зачислен на ваш аккаунт в течение следующих 2 рабочих дней. 📩',
+        'withdrawal_canceled': 'Операция отменена. 🚫',
+        'insufficient_balance': 'Недостаточно баланса! ⚠️',
+        'invalid_nft': 'Неверный выбор NFT! ⚠️',
+        'language': 'Язык 🌐',
+        'admin_menu': 'Меню администратора:',
+        'list_users': 'Список пользователей 👥',
+        'list_requests': 'Список запросов на вывод 📋',
+        'broadcast': 'Рассылка сообщений 📢',
+        'users_list': 'Список пользователей:\n{users}',
+        'requests_list': 'Запросы на вывод:\n{requests}',
+        'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
+        'broadcast_sent': 'Сообщение отправлено всем пользователям. 📤',
+        'approve': 'Одобрить ✅',
+        'reject': 'Отклонить ❌',
+        'request_approved': 'Запрос одобрен. ✅',
+        'request_rejected': 'Запрос отклонен. ❌',
+        'not_admin': 'Вы не администратор! ⚠️',
+        'back': 'Назад 🔙'
+    },
+    'fr': {  # فرانسوی
+        'welcome': 'Bienvenue sur @PlushNFTbot ! 🎉',
+        'captcha_prompt': 'Tapez le nom de cet emoji en anglais : {name}',
+        'incorrect_captcha': 'Incorrect ! Réessayez avec /start. ❌',
+        'main_menu': 'Menu Principal :',
+        'profile': 'Profil 👤',
+        'referral_link': 'Lien de Référence 🔗',
+        'your_referral_link': 'Votre lien de référence : {link}',
+        'daily_bonus': 'Bonus Quotidien 🎁',
+        'claimed_bonus': 'Vous avez réclamé 0.1 TON de bonus quotidien ! 💰',
+        'already_claimed_bonus': 'Vous avez déjà réclamé le bonus d\'aujourd\'hui ! ⏳',
+        'withdrawal': 'Retrait 📤',
+        'withdrawal_prompt': 'Selon votre solde, sélectionnez un des NFT suivants dans la liste et soumettez votre demande de retrait avec le bouton en verre👇',
+        'option': 'Option {number}:\n``` {name} ```: *{price} TON*',
+        'user_info': 'ID Utilisateur : {user_id}\nRéférences : {referrals}\nDate d\'inscription : {join_date}\nRetraits : {withdrawals}',
+        'referral_joined': 'L\'utilisateur {username} s\'est inscrit via votre lien de référence et 0.1 TON a été ajouté à votre solde. 👏',
+        'request_account_id': 'Veuillez entrer votre ID de compte pour continuer le retrait.',
+        'confirm_purchase': 'Êtes-vous sûr de vouloir acheter ce NFT avec le solde requis déduit ?',
+        'confirm': '✅ Confirmer',
+        'cancel': '❌ Annuler',
+        'withdrawal_success': 'Votre NFT sera déposé sur votre compte dans les 2 prochains jours ouvrables. 📩',
+        'withdrawal_canceled': 'Opération annulée. 🚫',
+        'insufficient_balance': 'Solde insuffisant ! ⚠️',
+        'invalid_nft': 'Sélection NFT invalide ! ⚠️',
+        'language': 'Langue 🌐',
+        'admin_menu': 'Menu Administrateur :',
+        'list_users': 'Liste des Utilisateurs 👥',
+        'list_requests': 'Liste des Demandes de Retrait 📋',
+        'broadcast': 'Message de Diffusion 📢',
+        'users_list': 'Liste des Utilisateurs :\n{users}',
+        'requests_list': 'Demandes de Retrait :\n{requests}',
+        'enter_broadcast': 'Entrez le message à diffuser à tous les utilisateurs.',
+        'broadcast_sent': 'Message envoyé à tous les utilisateurs. 📤',
+        'approve': 'Approuver ✅',
+        'reject': 'Rejeter ❌',
+        'request_approved': 'Demande approuvée. ✅',
+        'request_rejected': 'Demande rejetée. ❌',
+        'not_admin': 'Vous n\'êtes pas administrateur ! ⚠️',
+        'back': 'Retour 🔙'
+    },
+    'ar': {  # عربی
+        'welcome': 'مرحبا بك في @PlushNFTbot! 🎉',
+        'captcha_prompt': 'اكتب اسم هذا الإيموجي بالإنجليزية: {name}',
+        'incorrect_captcha': 'خطأ! حاول /start مرة أخرى. ❌',
+        'main_menu': 'القائمة الرئيسية:',
+        'profile': 'الملف الشخصي 👤',
+        'referral_link': 'رابط الإحالة 🔗',
+        'your_referral_link': 'رابط الإحالة الخاص بك: {link}',
+        'daily_bonus': 'المكافأة اليومية 🎁',
+        'claimed_bonus': 'لقد حصلت على 0.1 TON مكافأة يومية! 💰',
+        'already_claimed_bonus': 'لقد حصلت بالفعل على مكافأة اليوم! ⏳',
+        'withdrawal': 'السحب 📤',
+        'withdrawal_prompt': 'بناءً على رصيد حسابك، اختر أحد NFT التالية من القائمة وأرسل طلب السحب باستخدام زر الزجاج👇',
+        'option': 'الخيار {number}:\n``` {name} ```: *{price} TON*',
+        'user_info': 'معرف المستخدم: {user_id}\nالإحالات: {referrals}\nتاريخ الانضمام: {join_date}\nالسحوبات: {withdrawals}',
+        'referral_joined': 'المستخدم {username} انضم عبر رابط الإحالة الخاص بك وتمت إضافة 0.1 TON إلى رصيدك. 👏',
+        'request_account_id': 'يرجى إدخال معرف حسابك للمتابعة في السحب.',
+        'confirm_purchase': 'هل أنت متأكد من شراء هذا NFT مع خصم الرصيد المطلوب؟',
+        'confirm': '✅ تأكيد',
+        'cancel': '❌ إلغاء',
+        'withdrawal_success': 'سيتم إيداع NFT الخاص بك في حسابك خلال اليومين العاملين التاليين. 📩',
+        'withdrawal_canceled': 'تم إلغاء العملية. 🚫',
+        'insufficient_balance': 'رصيد غير كافٍ! ⚠️',
+        'invalid_nft': 'اختيار NFT غير صالح! ⚠️',
+        'language': 'اللغة 🌐',
+        'admin_menu': 'قائمة المشرف:',
+        'list_users': 'قائمة المستخدمين 👥',
+        'list_requests': 'قائمة طلبات السحب 📋',
+        'broadcast': 'رسالة الإذاعة 📢',
+        'users_list': 'قائمة المستخدمين:\n{users}',
+        'requests_list': 'طلبات السحب:\n{requests}',
+        'enter_broadcast': 'أدخل الرسالة لإرسالها لجميع المستخدمين.',
+        'broadcast_sent': 'تم إرسال الرسالة إلى جميع المستخدمين. 📤',
+        'approve': 'موافقة ✅',
+        'reject': 'رفض ❌',
+        'request_approved': 'تمت الموافقة على الطلب. ✅',
+        'request_rejected': 'تم رفض الطلب. ❌',
+        'not_admin': 'أنت لست مشرفًا! ⚠️',
+        'back': 'عودة 🔙'
     }
 }
 
@@ -277,7 +397,7 @@ async def menu_callback(update: Update, context: CallbackContext) -> None:
             msg += get_text(user_id, 'option', number=i, name=nft['name'], price=nft['price']) + "\n"
         keyboard = []
         for i, nft in enumerate(NFT_LIST, 1):
-            keyboard.append([InlineKeyboardButton(f"{nft['name']} 📦", callback_data=f"select_nft_{i-1}")])
+            keyboard.append([InlineKeyboardButton(f"``` {nft['name']} ``` 📦", callback_data=f"select_nft_{i-1}")])
         keyboard.append([InlineKeyboardButton(get_text(user_id, 'back'), callback_data="main_menu")])
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(msg, parse_mode='Markdown', reply_markup=reply_markup)
@@ -287,9 +407,9 @@ async def menu_callback(update: Update, context: CallbackContext) -> None:
         keyboard = [
             [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en")],
             [InlineKeyboardButton("فارسی 🇮🇷", callback_data="lang_fa")],
-            [InlineKeyboardButton("عربي 🇸🇦", callback_data="lang_ar")],
             [InlineKeyboardButton("Русский 🇷🇺", callback_data="lang_ru")],
             [InlineKeyboardButton("Français 🇫🇷", callback_data="lang_fr")],
+            [InlineKeyboardButton("العربية 🇸🇦", callback_data="lang_ar")],
             [InlineKeyboardButton(get_text(user_id, 'back'), callback_data="main_menu")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -352,7 +472,6 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
             context.user_data['awaiting_account_id'] = False
             await show_menu(update, context)
     elif context.user_data.get('awaiting_broadcast') and user_id == ADMIN_ID:
-        # ارسال پیام گروهی
         cursor.execute("SELECT user_id FROM users")
         users = cursor.fetchall()
         for u in users:
@@ -521,4 +640,4 @@ def main():
     )
 
 if __name__ == '__main__':
-    main()
+    main() 
