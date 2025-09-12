@@ -600,7 +600,7 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
 async def set_webhook(application):
     token = application.token
     port = int(os.getenv('PORT', 8443))
-    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_URL', 'your-service.onrender.com')}/{token}"
+    webhook_url = f"https://plushnft.onrender.com/{token}"
     logger.info(f"Setting webhook to {webhook_url} on port {port}...")
     set_webhook_url = f"https://api.telegram.org/bot{token}/setWebhook?url={webhook_url}"
     response = requests.get(set_webhook_url)
