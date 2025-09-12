@@ -511,7 +511,7 @@ def main():
 
     # اجرای برنامه با webhook
     port = int(os.getenv('PORT', 8443))
-    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_URL', 'your-service.onrender.com')}/{token}"
+    webhook_url = f"https://plushnft.onrender.com/{token}"
     logger.info(f"Running webhook on {webhook_url} with port {port}...")
     application.run_webhook(
         listen='0.0.0.0',
