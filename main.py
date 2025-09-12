@@ -131,7 +131,7 @@ TRANSLATIONS = {
         'not_admin': 'شما ادمین نیستید! ⚠️',
         'back': 'بازگشت 🔙'
     },
-    'ru': {  # روسی
+    'ru': {
         'welcome': 'Добро пожаловать в @PlushNFTbot! 🎉',
         'captcha_prompt': 'Введите название этого эмодзи на английском: {name}',
         'incorrect_captcha': 'Неверно! Попробуйте /start снова. ❌',
@@ -162,7 +162,7 @@ TRANSLATIONS = {
         'broadcast': 'Рассылка сообщений 📢',
         'users_list': 'Список пользователей:\n{users}',
         'requests_list': 'Запросы на вывод:\n{requests}',
-        'enter_broadcast': 'Введите сообщение для рассылки всем пользователям.',
+        'enter_broadcast': 'Введите сообщение для рассылки всем пользователяم.',
         'broadcast_sent': 'Сообщение отправлено всем пользователям. 📤',
         'approve': 'Одобрить ✅',
         'reject': 'Отклонить ❌',
@@ -171,7 +171,7 @@ TRANSLATIONS = {
         'not_admin': 'Вы не администратор! ⚠️',
         'back': 'Назад 🔙'
     },
-    'fr': {  # فرانسوی
+    'fr': {
         'welcome': 'Bienvenue sur @PlushNFTbot ! 🎉',
         'captcha_prompt': 'Tapez le nom de cet emoji en anglais : {name}',
         'incorrect_captcha': 'Incorrect ! Réessayez avec /start. ❌',
@@ -211,7 +211,7 @@ TRANSLATIONS = {
         'not_admin': 'Vous n\'êtes pas administrateur ! ⚠️',
         'back': 'Retour 🔙'
     },
-    'ar': {  # عربی
+    'ar': {
         'welcome': 'مرحبا بك في @PlushNFTbot! 🎉',
         'captcha_prompt': 'اكتب اسم هذا الإيموجي بالإنجليزية: {name}',
         'incorrect_captcha': 'خطأ! حاول /start مرة أخرى. ❌',
@@ -597,12 +597,11 @@ async def admin_callback(update: Update, context: CallbackContext) -> None:
         await show_menu(update, context)
 
 # تابع برای تنظیم خودکار webhook
-async def set_webhook(application):
-    token = application.token
+async def set_webhook(application, bot_token):
     port = int(os.getenv('PORT', 8443))
-    webhook_url = f"https://plushnft.onrender.com/{token}"
+    webhook_url = f"https://plushnft.onrender.com/{bot_token}"  # URL ثابت
     logger.info(f"Setting webhook to {webhook_url} on port {port}...")
-    set_webhook_url = f"https://api.telegram.org/bot{token}/setWebhook?url={webhook_url}"
+    set_webhook_url = f"https://api.telegram.org/bot{bot_token}/setWebhook?url={webhook_url}"
     response = requests.get(set_webhook_url)
     if response.json().get('ok'):
         logger.info("Webhook set successfully!")
@@ -610,13 +609,14 @@ async def set_webhook(application):
         logger.error(f"Failed to set webhook: {response.text}")
 
 def main():
-    token = "7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew"  # جایگزین با توکن واقعی
-    logger.info(f"Initializing application with token: {token[:10]}...")
-    application = Application.builder().token(token).build()
+    # خواندن توکن از متغیر محیطی یا مقدار پیش‌فرض
+    bot_token = os.getenv('BOT_TOKEN', '7593433447:AAF9Bnx0xzlDvJhz_DPCU02lQ70t2BBgSew')
+    logger.info(f"Initializing application with token: {bot_token[:10]}...")
+    application = Application.builder().token(bot_token).build()
 
     # تنظیم خودکار webhook
     import asyncio
-    asyncio.run(set_webhook(application))
+    asyncio.run(set_webhook(application, bot_token))
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin))
@@ -630,14 +630,14 @@ def main():
 
     # اجرای برنامه با webhook
     port = int(os.getenv('PORT', 8443))
-    webhook_url = f"https://plushnft.onrender.com/{token}"
+    webhook_url = f"https://plushnft.onrender.com/{bot_token}"  # URL ثابت
     logger.info(f"Running webhook on {webhook_url} with port {port}...")
     application.run_webhook(
         listen='0.0.0.0',
         port=port,
-        url_path=token,
+        url_path=bot_token,
         webhook_url=webhook_url
     )
 
 if __name__ == '__main__':
-    main() 
+    main()
